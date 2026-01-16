@@ -14,11 +14,12 @@
  *.log
  logs/
 
- # Backend (Java/Maven)
- backend/target/
- backend/.classpath
- backend/.project
- backend/.settings/
+# Backend (Java/Maven)
+backend/target/
+backend/logs/
+backend/.classpath
+backend/.project
+backend/.settings/
 
  # Frontend (Node)
  frontend/node_modules/

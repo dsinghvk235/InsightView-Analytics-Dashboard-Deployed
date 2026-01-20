@@ -8,22 +8,43 @@ type TabType = 'overview' | 'charts' | 'advanced' | 'transactions';
 
 const validTabs: TabType[] = ['overview', 'charts', 'advanced', 'transactions'];
 
-// Get initial tab from URL hash or default to 'overview'
 const getInitialTab = (): TabType => {
   const hash = window.location.hash.replace('#', '');
   return validTabs.includes(hash as TabType) ? (hash as TabType) : 'overview';
 };
 
+const PERIOD_OPTIONS = [
+  { value: 7, label: '7D' },
+  { value: 30, label: '30D' },
+  { value: 45, label: '45D' },
+  { value: 60, label: '60D' },
+  { value: 90, label: '90D' },
+  { value: 0, label: 'All' },
+];
+
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState<TabType>(getInitialTab);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [periodDays, setPeriodDays] = useState(7);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
 
-  // Sync tab state with URL hash
   useEffect(() => {
-    // Update URL hash when tab changes
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+      if (window.innerWidth > 768) {
+        setIsMobileSidebarOpen(false);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
     window.location.hash = activeTab;
   }, [activeTab]);
 
-  // Listen for browser back/forward navigation
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.replace('#', '');
@@ -31,238 +52,770 @@ const Dashboard = () => {
         setActiveTab(hash as TabType);
       }
     };
-
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
+  useEffect(() => {
+    setIsMobileSidebarOpen(false);
+  }, [activeTab]);
+
   const navItems = [
-    { id: 'overview', label: 'Overview', icon: (
-      <svg style={{ width: '20px', height: '20px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+    { id: 'overview', label: 'Overview', shortLabel: 'Overview', icon: (
+      <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
       </svg>
     )},
-    { id: 'charts', label: 'Analytics', icon: (
-      <svg style={{ width: '20px', height: '20px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+    { id: 'charts', label: 'Analytics', shortLabel: 'Analytics', icon: (
+      <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
       </svg>
     )},
-    { id: 'advanced', label: 'Advanced Analytics', icon: (
-      <svg style={{ width: '20px', height: '20px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
+    { id: 'advanced', label: 'Insights', shortLabel: 'Insights', icon: (
+      <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5M9 11.25v1.5M12 9v3.75m3-6v6" />
       </svg>
     )},
-    { id: 'transactions', label: 'Transactions', icon: (
-      <svg style={{ width: '20px', height: '20px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+    { id: 'transactions', label: 'Transactions', shortLabel: 'Txns', icon: (
+      <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
       </svg>
     )},
   ];
 
+  const sidebarWidth = isSidebarCollapsed ? 72 : 260;
+
+  const pageInfo = {
+    overview: { title: 'Dashboard', subtitle: 'Track your key metrics and performance' },
+    charts: { title: 'Analytics', subtitle: 'Visualize trends and patterns' },
+    advanced: { title: 'Insights', subtitle: 'Deep analytics and patterns' },
+    transactions: { title: 'Transactions', subtitle: 'View and manage transactions' },
+  };
+
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f8fafc' }}>
-      {/* Sidebar */}
-      <aside style={{
-        position: 'fixed',
-        left: 0,
-        top: 0,
-        height: '100vh',
-        width: '256px',
-        backgroundColor: '#0f172a',
-        color: 'white',
-        display: 'flex',
-        flexDirection: 'column',
-        zIndex: 50
-      }}>
-        {/* Logo */}
-        <div style={{ padding: '24px', borderBottom: '1px solid #334155' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#E6F4F1' }}>
+      {/* Mobile Overlay */}
+      {isMobile && isMobileSidebarOpen && (
+        <div 
+          onClick={() => setIsMobileSidebarOpen(false)}
+          className="animate-fadeIn"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0, 49, 66, 0.4)',
+            backdropFilter: 'blur(4px)',
+            WebkitBackdropFilter: 'blur(4px)',
+            zIndex: 45
+          }}
+        />
+      )}
+
+      {/* Sidebar - Floating Premium Light Theme */}
+      <aside 
+        className="desktop-sidebar sidebar-light"
+        style={{
+          position: 'fixed',
+          left: isMobile ? 0 : 16,
+          top: isMobile ? 0 : 16,
+          height: isMobile ? '100vh' : 'calc(100vh - 32px)',
+          width: isMobile ? 280 : sidebarWidth,
+          backgroundColor: '#ffffff',
+          border: 'none',
+          borderRadius: isMobile ? 0 : '20px',
+          display: 'flex',
+          flexDirection: 'column',
+          zIndex: 50,
+          transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          transform: isMobile ? (isMobileSidebarOpen ? 'translateX(0)' : 'translateX(-100%)') : 'translateX(0)',
+          boxShadow: isMobile && isMobileSidebarOpen 
+            ? '8px 0 32px rgba(0,0,0,0.08)' 
+            : '0 4px 24px rgba(0, 49, 66, 0.08), 0 1px 3px rgba(0, 49, 66, 0.04)',
+          overflow: 'hidden'
+        }}
+      >
+        {/* Logo Section */}
+        <div style={{ 
+          padding: isSidebarCollapsed ? '20px 16px' : '20px 20px', 
+          borderBottom: '1px solid #f1f5f9',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: isSidebarCollapsed ? 'center' : 'space-between',
+          minHeight: '72px'
+        }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{
-              width: '40px',
-              height: '40px',
-              background: 'linear-gradient(135deg, #6366f1 0%, #9333ea 100%)',
-              borderRadius: '12px',
+              width: '38px',
+              height: '38px',
+              background: 'linear-gradient(135deg, #003142 0%, #7FB3C8 100%)',
+              borderRadius: '10px',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center'
+              justifyContent: 'center',
+              flexShrink: 0,
+              boxShadow: '0 4px 12px rgba(0, 49, 66, 0.15)'
             }}>
-              <svg style={{ width: '24px', height: '24px', color: 'white' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+              <svg width="20" height="20" fill="none" stroke="white" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
               </svg>
             </div>
-            <div>
-              <h1 style={{ fontSize: '18px', fontWeight: 'bold', margin: 0 }}>FinanceHub</h1>
-              <p style={{ fontSize: '12px', color: '#94a3b8', margin: 0 }}>Analytics Platform</p>
-            </div>
+            {!isSidebarCollapsed && (
+              <div>
+                <h1 style={{ fontSize: '16px', fontWeight: 700, color: '#003142', margin: 0, letterSpacing: '-0.02em' }}>FinanceHub</h1>
+                <p style={{ fontSize: '11px', color: 'rgba(0, 49, 66, 0.6)', margin: 0, fontWeight: 500, letterSpacing: '0.02em' }}>Analytics Platform</p>
+              </div>
+            )}
           </div>
+          {/* Collapse Toggle - Desktop only */}
+          {!isMobile && !isSidebarCollapsed && (
+            <button
+              onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: 'rgba(0, 49, 66, 0.5)',
+                cursor: 'pointer',
+                padding: '8px',
+                borderRadius: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.15s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#f1f5f9';
+                e.currentTarget.style.color = '#64748b';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent';
+                e.currentTarget.style.color = '#94a3b8';
+              }}
+            >
+              <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M18.75 19.5l-7.5-7.5 7.5-7.5m-6 15L5.25 12l7.5-7.5" />
+              </svg>
+            </button>
+          )}
+          {/* Mobile Close */}
+          {isMobile && (
+            <button
+              onClick={() => setIsMobileSidebarOpen(false)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: 'rgba(0, 49, 66, 0.6)',
+                cursor: 'pointer',
+                padding: '8px',
+                borderRadius: '8px',
+                display: 'flex'
+              }}
+            >
+              <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          )}
         </div>
 
-        {/* Navigation */}
-        <nav style={{ flex: 1, padding: '16px' }}>
-          <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-            {navItems.map((item) => (
-              <li key={item.id} style={{ marginBottom: '8px' }}>
-                <button
-                  onClick={() => setActiveTab(item.id as TabType)}
-                  style={{
-                    width: '100%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                    padding: '12px 16px',
-                    borderRadius: '12px',
-                    border: 'none',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                    backgroundColor: activeTab === item.id ? '#4f46e5' : 'transparent',
-                    color: activeTab === item.id ? 'white' : '#94a3b8',
-                    fontWeight: 500,
-                    fontSize: '14px'
-                  }}
-                >
-                  {item.icon}
-                  <span>{item.label}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
+        {/* Expand button when collapsed */}
+        {!isMobile && isSidebarCollapsed && (
+          <button
+            onClick={() => setIsSidebarCollapsed(false)}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: 'rgba(0, 49, 66, 0.5)',
+              cursor: 'pointer',
+              padding: '14px',
+              display: 'flex',
+              justifyContent: 'center',
+              borderBottom: '1px solid #f1f5f9',
+              transition: 'all 0.15s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#f8fafc';
+              e.currentTarget.style.color = '#64748b';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent';
+              e.currentTarget.style.color = '#94a3b8';
+            }}
+          >
+            <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 4.5l7.5 7.5-7.5 7.5m-6-15l7.5 7.5-7.5 7.5" />
+            </svg>
+          </button>
+        )}
 
-          <div style={{ marginTop: '32px', paddingTop: '32px', borderTop: '1px solid #334155' }}>
-            <p style={{ padding: '0 16px', fontSize: '11px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '16px' }}>Quick Stats</p>
-            <div style={{ padding: '0 16px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-                <span style={{ fontSize: '14px', color: '#94a3b8' }}>System Status</span>
-                <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span style={{ width: '8px', height: '8px', backgroundColor: '#10b981', borderRadius: '50%' }}></span>
-                  <span style={{ fontSize: '12px', color: '#34d399', fontWeight: 500 }}>Online</span>
-                </span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: '14px', color: '#94a3b8' }}>Last Updated</span>
-                <span style={{ fontSize: '12px', color: '#64748b' }}>Just now</span>
-              </div>
-            </div>
-          </div>
+        {/* Navigation */}
+        <nav style={{ flex: 1, padding: isSidebarCollapsed ? '16px 12px' : '16px', overflowY: 'auto' }}>
+          {!isSidebarCollapsed && (
+            <p style={{ 
+              padding: '0 12px', 
+              fontSize: '11px', 
+              fontWeight: 600, 
+              color: 'rgba(0, 49, 66, 0.5)', 
+              textTransform: 'uppercase', 
+              letterSpacing: '0.06em', 
+              marginBottom: '12px' 
+            }}>
+              Navigation
+            </p>
+          )}
+          <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+            {navItems.map((item) => {
+              const isActive = activeTab === item.id;
+              return (
+                <li key={item.id} style={{ marginBottom: '4px' }}>
+                  <button
+                    onClick={() => setActiveTab(item.id as TabType)}
+                    title={isSidebarCollapsed ? item.label : undefined}
+                    style={{
+                      width: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: isSidebarCollapsed ? 'center' : 'flex-start',
+                      gap: '12px',
+                      padding: isSidebarCollapsed ? '12px' : '10px 12px',
+                      borderRadius: '10px',
+                      border: 'none',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+              backgroundColor: isActive ? '#E6F4F1' : 'transparent',
+              color: isActive ? '#003142' : 'rgba(0, 49, 66, 0.6)',
+                      fontWeight: 500,
+                      fontSize: '14px',
+                      position: 'relative'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isActive) {
+                        e.currentTarget.style.backgroundColor = '#E6F4F1';
+                        e.currentTarget.style.color = '#003142';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isActive) {
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                        e.currentTarget.style.color = 'rgba(0, 49, 66, 0.6)';
+                      }
+                    }}
+                  >
+                    {isActive && (
+                      <span style={{
+                        position: 'absolute',
+                        left: 0,
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        width: '3px',
+                        height: '20px',
+                        backgroundColor: '#7FB3C8',
+                        borderRadius: '0 4px 4px 0'
+                      }} />
+                    )}
+                    <span style={{ 
+                      color: isActive ? '#7FB3C8' : 'rgba(0, 49, 66, 0.5)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      transition: 'color 0.15s ease'
+                    }}>
+                      {item.icon}
+                    </span>
+                    {!isSidebarCollapsed && <span>{item.label}</span>}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
         </nav>
 
-        {/* User Profile */}
-        <div style={{ padding: '16px', borderTop: '1px solid #334155' }}>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-            padding: '12px 16px',
-            borderRadius: '12px',
-            backgroundColor: 'rgba(30, 41, 59, 0.5)'
-          }}>
+        {/* Bottom Section */}
+        <div style={{ padding: isSidebarCollapsed ? '16px 12px' : '16px', borderTop: '1px solid #f1f5f9' }}>
+          {/* System Status */}
+          {!isSidebarCollapsed && (
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'space-between',
+              padding: '12px 14px',
+              backgroundColor: '#D1FAE5',
+              borderRadius: '10px',
+              marginBottom: '12px',
+              border: '1px solid #6EE7B7'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ 
+                  width: '8px', 
+                  height: '8px', 
+                  backgroundColor: '#22c55e', 
+                  borderRadius: '50%',
+                  boxShadow: '0 0 0 3px rgba(34, 197, 94, 0.15)'
+                }} />
+                <span style={{ fontSize: '13px', color: '#059669', fontWeight: 500 }}>All systems operational</span>
+              </div>
+            </div>
+          )}
+          
+          {/* User Profile */}
+          <div 
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: isSidebarCollapsed ? 'center' : 'flex-start',
+              gap: '12px',
+              padding: isSidebarCollapsed ? '0' : '10px 12px',
+              borderRadius: '10px',
+              backgroundColor: isSidebarCollapsed ? 'transparent' : '#F0F9F7',
+              cursor: 'pointer',
+              transition: 'background-color 0.15s ease',
+              border: isSidebarCollapsed ? 'none' : '1px solid #D1E8E3'
+            }}
+            onMouseEnter={(e) => {
+              if (!isSidebarCollapsed) e.currentTarget.style.backgroundColor = '#f1f5f9';
+            }}
+            onMouseLeave={(e) => {
+              if (!isSidebarCollapsed) e.currentTarget.style.backgroundColor = '#f8fafc';
+            }}
+          >
             <div style={{
-              width: '40px',
-              height: '40px',
-              borderRadius: '50%',
-              background: 'linear-gradient(135deg, #818cf8 0%, #a855f7 100%)',
+              width: '36px',
+              height: '36px',
+              borderRadius: '10px',
+              background: 'linear-gradient(135deg, #003142 0%, #7FB3C8 100%)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               color: 'white',
-              fontWeight: 'bold',
-              fontSize: '14px'
+              fontWeight: 600,
+              fontSize: '13px',
+              flexShrink: 0
             }}>
               AD
             </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ fontSize: '14px', fontWeight: 500, color: 'white', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Admin User</p>
-              <p style={{ fontSize: '12px', color: '#94a3b8', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>admin@finance.com</p>
-            </div>
+            {!isSidebarCollapsed && (
+              <>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ fontSize: '14px', fontWeight: 600, color: '#003142', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Admin User</p>
+                  <p style={{ fontSize: '12px', color: 'rgba(0, 49, 66, 0.6)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>admin@finance.com</p>
+                </div>
+                <svg width="16" height="16" fill="none" stroke="rgba(0, 49, 66, 0.5)" strokeWidth={1.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 15L12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9" />
+                </svg>
+              </>
+            )}
           </div>
         </div>
       </aside>
 
       {/* Main Content */}
-      <main style={{ flex: 1, marginLeft: '256px' }}>
-        {/* Top Header */}
-        <header style={{
-          position: 'sticky',
-          top: 0,
-          zIndex: 40,
-          backgroundColor: 'rgba(255, 255, 255, 0.9)',
-          backdropFilter: 'blur(8px)',
-          borderBottom: '1px solid #e2e8f0'
-        }}>
-          <div style={{ padding: '16px 32px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div>
-                <h2 style={{ fontSize: '24px', fontWeight: 'bold', color: '#0f172a', margin: 0 }}>
-                  {activeTab === 'overview' && 'Dashboard Overview'}
-                  {activeTab === 'charts' && 'Analytics & Charts'}
-                  {activeTab === 'advanced' && 'Advanced Analytics'}
-                  {activeTab === 'transactions' && 'Transaction History'}
-                </h2>
-                <p style={{ fontSize: '14px', color: '#64748b', marginTop: '4px' }}>
-                  {activeTab === 'overview' && 'Monitor your key performance metrics'}
-                  {activeTab === 'charts' && 'Visualize trends and patterns in your data'}
-                  {activeTab === 'advanced' && 'Deep dive into volume, payment methods, and hourly patterns'}
-                  {activeTab === 'transactions' && 'Browse and filter all transactions'}
-                </p>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                {/* Search */}
-                <div style={{ position: 'relative' }}>
-                  <svg style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', width: '20px', height: '20px', color: '#94a3b8' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                  <input
-                    type="text"
-                    placeholder="Search..."
+      <main 
+        className="main-content"
+        style={{ 
+          flex: 1, 
+          marginLeft: isMobile ? 0 : sidebarWidth + 32,
+          paddingTop: isMobile ? '80px' : '16px',
+          paddingBottom: isMobile ? '100px' : '16px',
+          transition: 'margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+        }}
+      >
+        {/* Top Header - Floating */}
+        <header 
+          className="page-header"
+          style={{
+            position: isMobile ? 'fixed' : 'sticky',
+            top: isMobile ? 12 : 16,
+            left: isMobile ? 12 : 'auto',
+            right: isMobile ? 12 : 'auto',
+            zIndex: 40,
+            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            borderRadius: '16px',
+            margin: isMobile ? 0 : '0 16px',
+            boxShadow: '0 4px 20px rgba(0, 49, 66, 0.06), 0 1px 3px rgba(0, 49, 66, 0.04)',
+            border: '1px solid rgba(255, 255, 255, 0.8)'
+          }}
+        >
+          <div style={{ padding: isMobile ? '12px 16px' : '16px 24px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1, minWidth: 0 }}>
+                {/* Mobile Menu Button */}
+                {isMobile && (
+                  <button
+                    onClick={() => setIsMobileSidebarOpen(true)}
                     style={{
-                      paddingLeft: '40px',
-                      paddingRight: '16px',
-                      paddingTop: '10px',
-                      paddingBottom: '10px',
-                      width: '256px',
-                      backgroundColor: '#f1f5f9',
+                      background: 'transparent',
                       border: 'none',
-                      borderRadius: '12px',
-                      fontSize: '14px',
-                      outline: 'none'
+                      color: 'rgba(0, 49, 66, 0.7)',
+                      cursor: 'pointer',
+                      padding: '8px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderRadius: '8px',
+                      flexShrink: 0
                     }}
-                  />
+                  >
+                    <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                    </svg>
+                  </button>
+                )}
+                <div style={{ minWidth: 0 }}>
+                  <h2 style={{ 
+                    fontSize: isMobile ? '18px' : '20px', 
+                    fontWeight: 600, 
+                    color: '#003142', 
+                    margin: 0,
+                    letterSpacing: '-0.015em'
+                  }}>
+                    {pageInfo[activeTab].title}
+                  </h2>
+                  {!isMobile && (
+                    <p style={{ fontSize: '13px', color: 'rgba(0, 49, 66, 0.6)', marginTop: '2px' }}>
+                      {pageInfo[activeTab].subtitle}
+                    </p>
+                  )}
                 </div>
-                {/* Date */}
-                <div style={{ padding: '10px 16px', backgroundColor: '#f1f5f9', borderRadius: '12px' }}>
-                  <p style={{ fontSize: '14px', fontWeight: 500, color: '#475569', margin: 0 }}>
-                    {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
-                  </p>
+              </div>
+              
+              <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '10px', flexShrink: 0 }}>
+                {/* Search */}
+                {!isMobile && (
+                  <div style={{ position: 'relative' }}>
+                    <svg style={{ 
+                      position: 'absolute', 
+                      left: '12px', 
+                      top: '50%', 
+                      transform: 'translateY(-50%)', 
+                      width: '18px', 
+                      height: '18px', 
+                      color: isSearchFocused ? '#7FB3C8' : 'rgba(0, 49, 66, 0.5)',
+                      transition: 'color 0.15s ease'
+                    }} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                    </svg>
+                    <input
+                      type="text"
+                      placeholder="Search..."
+                      onFocus={() => setIsSearchFocused(true)}
+                      onBlur={() => setIsSearchFocused(false)}
+                      style={{
+                        paddingLeft: '40px',
+                        paddingRight: '14px',
+                        paddingTop: '9px',
+                        paddingBottom: '9px',
+                        width: '200px',
+                        backgroundColor: isSearchFocused ? '#ffffff' : '#F0F9F7',
+                        border: isSearchFocused ? '1px solid #7FB3C8' : '1px solid #B8D9D1',
+                        borderRadius: '10px',
+                        fontSize: '14px',
+                        outline: 'none',
+                        transition: 'all 0.2s ease',
+                        color: '#003142',
+                        boxShadow: isSearchFocused ? '0 0 0 3px rgba(127, 179, 200, 0.2)' : 'none'
+                      }}
+                    />
+                  </div>
+                )}
+                
+                {/* Notifications */}
+                <button 
+                  style={{
+                    padding: '9px',
+                    backgroundColor: '#F0F9F7',
+                    border: '1px solid #B8D9D1',
+                    borderRadius: '10px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'all 0.15s ease',
+                    position: 'relative'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#E6F4F1';
+                    e.currentTarget.style.borderColor = '#9FC4BB';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = '#F0F9F7';
+                    e.currentTarget.style.borderColor = '#B8D9D1';
+                  }}
+                >
+                  <svg width="18" height="18" fill="none" stroke="rgba(0, 49, 66, 0.6)" strokeWidth={1.5} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+                  </svg>
+                  {/* Notification dot */}
+                  <span style={{
+                    position: 'absolute',
+                    top: '6px',
+                    right: '6px',
+                    width: '8px',
+                    height: '8px',
+                    backgroundColor: '#ef4444',
+                    borderRadius: '50%',
+                    border: '2px solid white'
+                  }} />
+                </button>
+                
+                {/* Profile Avatar */}
+                <div 
+                  style={{
+                    width: '38px',
+                    height: '38px',
+                    borderRadius: '10px',
+                    background: 'linear-gradient(135deg, #003142 0%, #7FB3C8 100%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'white',
+                    fontWeight: 600,
+                    fontSize: '13px',
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 8px rgba(0, 49, 66, 0.15)',
+                    transition: 'transform 0.15s ease, box-shadow 0.15s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'scale(1.05)';
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 49, 66, 0.2)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'scale(1)';
+                    e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 49, 66, 0.15)';
+                  }}
+                >
+                  AD
                 </div>
               </div>
             </div>
+            
+            {/* Mobile Date */}
+            {isMobile && (
+              <p style={{ 
+                fontSize: '12px', 
+                color: 'rgba(0, 49, 66, 0.6)', 
+                margin: '8px 0 0 0',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}>
+                <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                </svg>
+                {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
+              </p>
+            )}
           </div>
         </header>
 
         {/* Page Content */}
-        <div style={{ padding: '32px' }}>
+        <div 
+          className="page-content"
+          style={{ padding: isMobile ? '16px' : '24px 28px' }}
+        >
           {activeTab === 'overview' && (
-            <div>
-              <KPICards />
-              <div style={{ marginTop: '32px' }}>
-                <Charts />
+            <div className="animate-fadeInUp">
+              {/* Filter Bar */}
+              <div style={{
+                display: 'flex',
+                flexDirection: isMobile ? 'column' : 'row',
+                justifyContent: 'space-between',
+                alignItems: isMobile ? 'stretch' : 'center',
+                gap: '16px',
+                marginBottom: '24px'
+              }}>
+                {/* Period Pills */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  padding: '4px',
+                  backgroundColor: '#F0F9F7',
+                  borderRadius: '12px',
+                  flexWrap: 'nowrap',
+                  overflowX: 'auto'
+                }}>
+                  {PERIOD_OPTIONS.map(option => {
+                    const isActive = periodDays === option.value;
+                    return (
+                      <button
+                        key={option.value}
+                        onClick={() => setPeriodDays(option.value)}
+                        style={{
+                          padding: '8px 16px',
+                          fontSize: '13px',
+                          fontWeight: 500,
+                          borderRadius: '8px',
+                          border: 'none',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease',
+                          backgroundColor: isActive ? '#ffffff' : 'transparent',
+                          color: isActive ? '#003142' : 'rgba(0, 49, 66, 0.6)',
+                          boxShadow: isActive ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                          whiteSpace: 'nowrap',
+                          flexShrink: 0
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!isActive) {
+                            e.currentTarget.style.color = '#003142';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!isActive) {
+                            e.currentTarget.style.color = 'rgba(0, 49, 66, 0.6)';
+                          }
+                        }}
+                      >
+                        {option.label}
+                      </button>
+                    );
+                  })}
+                </div>
+                
+                {/* Quick Actions */}
+                {!isMobile && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <button 
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '9px 16px',
+                        fontSize: '13px',
+                        fontWeight: 500,
+                        borderRadius: '10px',
+                        border: '1px solid #B8D9D1',
+                        backgroundColor: '#ffffff',
+                        color: 'rgba(0, 49, 66, 0.7)',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = '#F0F9F7';
+                        e.currentTarget.style.borderColor = '#9FC4BB';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = '#ffffff';
+                        e.currentTarget.style.borderColor = '#B8D9D1';
+                      }}
+                    >
+                      <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                      </svg>
+                      Export
+                    </button>
+                    <button 
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '9px 16px',
+                        fontSize: '13px',
+                        fontWeight: 500,
+                        borderRadius: '10px',
+                        border: 'none',
+                        background: 'linear-gradient(135deg, #003142 0%, #7FB3C8 100%)',
+                        color: '#ffffff',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        boxShadow: '0 2px 8px rgba(79, 70, 229, 0.25)'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-1px)';
+                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 49, 66, 0.2)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 49, 66, 0.15)';
+                      }}
+                    >
+                      <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z" />
+                      </svg>
+                      AI Insights
+                    </button>
+                  </div>
+                )}
+              </div>
+              
+              <KPICards periodDays={periodDays} />
+              <div style={{ marginTop: '24px' }}>
+                <Charts periodDays={periodDays} showDatePicker={false} />
               </div>
             </div>
           )}
 
           {activeTab === 'charts' && (
-            <Charts />
+            <div className="animate-fadeInUp">
+              <Charts />
+            </div>
           )}
 
           {activeTab === 'advanced' && (
-            <AdvancedCharts />
+            <div className="animate-fadeInUp">
+              <AdvancedCharts />
+            </div>
           )}
 
           {activeTab === 'transactions' && (
-            <TransactionTable />
+            <div className="animate-fadeInUp">
+              <TransactionTable />
+            </div>
           )}
         </div>
       </main>
+
+      {/* Mobile Bottom Navigation - Floating */}
+      {isMobile && (
+        <nav style={{
+          position: 'fixed',
+          bottom: 12,
+          left: 12,
+          right: 12,
+          backgroundColor: 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          borderRadius: '16px',
+          zIndex: 50,
+          display: 'flex',
+          justifyContent: 'space-around',
+          alignItems: 'center',
+          padding: '8px 0',
+          paddingBottom: 'max(8px, env(safe-area-inset-bottom))',
+          boxShadow: '0 4px 20px rgba(0, 49, 66, 0.08), 0 -2px 10px rgba(0, 49, 66, 0.04)',
+          border: '1px solid rgba(255, 255, 255, 0.8)'
+        }}>
+          {navItems.map((item) => {
+            const isActive = activeTab === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => setActiveTab(item.id as TabType)}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '4px',
+                  padding: '6px 16px',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: isActive ? '#7FB3C8' : 'rgba(0, 49, 66, 0.5)',
+                  transition: 'color 0.15s ease'
+                }}
+              >
+                <div style={{
+                  padding: '6px',
+                  borderRadius: '10px',
+                  backgroundColor: isActive ? '#E6F4F1' : 'transparent',
+                  transition: 'background-color 0.15s ease'
+                }}>
+                  {item.icon}
+                </div>
+                <span style={{ fontSize: '11px', fontWeight: 500 }}>{item.shortLabel}</span>
+              </button>
+            );
+          })}
+        </nav>
+      )}
     </div>
   );
 };

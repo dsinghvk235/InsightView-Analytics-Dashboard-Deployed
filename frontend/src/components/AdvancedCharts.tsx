@@ -11,7 +11,6 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
   ComposedChart,
 } from 'recharts';
 import { 
@@ -21,22 +20,858 @@ import {
   HourlyTransaction 
 } from '../services/api';
 
+// Premium color palette
 const COLORS = {
-  primary: '#6366f1',
-  success: '#10b981',
-  warning: '#f59e0b',
-  danger: '#ef4444',
-  purple: '#8b5cf6',
-  pink: '#ec4899',
-  cyan: '#06b6d4',
-  orange: '#f97316',
+  primary: '#7FB3C8',
+  primaryLight: '#9FC4BB',
+  secondary: '#7FB3C8',
+  success: '#059669',
+  warning: '#d97706',
+  error: '#dc2626',
+  purple: '#7FB3C8',
+  pink: '#7FB3C8',
+  teal: '#7FB3C8',
 };
 
-const PAYMENT_COLORS = [COLORS.primary, COLORS.success, COLORS.warning, COLORS.purple, COLORS.pink, COLORS.cyan];
-const STATUS_COLORS: { [key: string]: string } = {
-  'SUCCESS': COLORS.success,
-  'PENDING': COLORS.warning,
-  'FAILED': COLORS.danger,
+const PAYMENT_COLORS = ['#7FB3C8', '#6BA3B8', '#9FC4BB', '#d97706', '#7FB3C8', '#7FB3C8'];
+
+// ==================== PREMIUM HEATMAP COLOR SYSTEM ====================
+// Modern continuous gradient from light mint to accent blue
+const HEATMAP_COLOR_SCALE = {
+  // 10-step continuous scale for smoother transitions
+  colors: [
+    '#E6F4F1', // 0 - Empty/No data (light mint)
+    '#D1E8E3', // 1 - Very low
+    '#B8D9D1', // 2 - Low
+    '#9FC4BB', // 3 - Low-medium
+    '#8BB5AD', // 4 - Medium-low
+    '#7FB3C8', // 5 - Medium (accent blue)
+    '#6BA3B8', // 6 - Medium-high
+    '#5A93A8', // 7 - High
+    '#4A8398', // 8 - Very high
+    '#003142', // 9 - Peak (primary dark)
+  ],
+  // Text colors for each intensity level (accessibility)
+  textColors: [
+    'rgba(0, 49, 66, 0.5)', // 0
+    'rgba(0, 49, 66, 0.6)', // 1
+    'rgba(0, 49, 66, 0.7)', // 2
+    'rgba(0, 49, 66, 0.8)', // 3
+    '#003142', // 4
+    '#003142', // 5
+    '#ffffff', // 6
+    '#ffffff', // 7
+    '#ffffff', // 8
+    '#ffffff', // 9
+  ],
+  // Muted text colors for labels
+  labelColors: [
+    'rgba(0, 49, 66, 0.4)', // 0
+    'rgba(0, 49, 66, 0.5)', // 1
+    'rgba(0, 49, 66, 0.6)', // 2
+    'rgba(0, 49, 66, 0.7)', // 3
+    '#003142', // 4
+    '#003142', // 5
+    'rgba(255,255,255,0.8)', // 6
+    'rgba(255,255,255,0.75)', // 7
+    'rgba(255,255,255,0.7)', // 8
+    'rgba(255,255,255,0.7)', // 9
+  ]
+};
+
+// Premium Heatmap Component with all enhanced features
+interface HourlyHeatmapPremiumProps {
+  hourlyData: HourlyTransaction[];
+  isMobile: boolean;
+  formatHour: (hour: number) => string;
+  formatNumber: (value: number) => string;
+  formatCurrency: (value: number) => string;
+  cardStyle: React.CSSProperties;
+}
+
+const HourlyHeatmapPremium: React.FC<HourlyHeatmapPremiumProps> = ({
+  hourlyData,
+  isMobile,
+  formatHour,
+  formatNumber,
+  formatCurrency,
+  cardStyle
+}) => {
+  const [hoveredHour, setHoveredHour] = useState<number | null>(null);
+  const [tooltipData, setTooltipData] = useState<{
+    hour: number;
+    x: number;
+    y: number;
+  } | null>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  // Trigger load animation
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoaded(true), 100);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Calculate statistics for smart insights
+  const stats = (() => {
+    if (!hourlyData.length) return null;
+    
+    const counts = hourlyData.map(h => h.transactionCount);
+    const maxCount = Math.max(...counts);
+    const minCount = Math.min(...counts.filter(c => c > 0));
+    const avgCount = counts.reduce((a, b) => a + b, 0) / counts.length;
+    const totalCount = counts.reduce((a, b) => a + b, 0);
+    
+    // Find peak hours (top 3)
+    const sortedByCount = [...hourlyData].sort((a, b) => b.transactionCount - a.transactionCount);
+    const peakHours = sortedByCount.slice(0, 3).map(h => h.hour);
+    
+    // Find lowest hours (bottom 3 with activity)
+    const lowestHours = sortedByCount
+      .filter(h => h.transactionCount > 0)
+      .slice(-3)
+      .map(h => h.hour);
+    
+    return { maxCount, minCount, avgCount, totalCount, peakHours, lowestHours };
+  })();
+
+  // Enhanced color calculation with smooth interpolation
+  const getHeatmapColorIndex = (count: number): number => {
+    if (!stats || count === 0) return 0;
+    const intensity = count / stats.maxCount;
+    // Map to 1-9 range (0 is reserved for no data)
+    return Math.min(9, Math.max(1, Math.ceil(intensity * 9)));
+  };
+
+  const getHeatmapColor = (count: number): string => {
+    return HEATMAP_COLOR_SCALE.colors[getHeatmapColorIndex(count)];
+  };
+
+  const getTextColor = (count: number): string => {
+    return HEATMAP_COLOR_SCALE.textColors[getHeatmapColorIndex(count)];
+  };
+
+  const getLabelColor = (count: number): string => {
+    return HEATMAP_COLOR_SCALE.labelColors[getHeatmapColorIndex(count)];
+  };
+
+  // Check if hour is peak or lowest
+  const isPeakHour = (hour: number): boolean => stats?.peakHours.includes(hour) ?? false;
+  const isLowestHour = (hour: number): boolean => stats?.lowestHours.includes(hour) ?? false;
+
+  // Calculate percentile rank
+  const getPercentileRank = (count: number): number => {
+    if (!stats || count === 0) return 0;
+    const rank = hourlyData.filter(h => h.transactionCount <= count).length;
+    return Math.round((rank / hourlyData.length) * 100);
+  };
+
+  // Format number with decimal for consistency
+  const formatValueConsistent = (value: number): string => {
+    if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
+    if (value >= 1000) return `${(value / 1000).toFixed(1)}K`;
+    return value.toString();
+  };
+
+  // Handle hover with tooltip positioning
+  const handleCellHover = (hour: number, event: React.MouseEvent) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    setHoveredHour(hour);
+    setTooltipData({
+      hour,
+      x: rect.left + rect.width / 2,
+      y: rect.top
+    });
+  };
+
+  const handleCellLeave = () => {
+    setHoveredHour(null);
+    setTooltipData(null);
+  };
+
+  // Get hour data
+  const getHourData = (hour: number) => hourlyData.find(h => h.hour === hour);
+
+  // Premium Tooltip Component
+  const PremiumTooltip = () => {
+    if (!tooltipData || hoveredHour === null) return null;
+    
+    const hourData = getHourData(hoveredHour);
+    if (!hourData) return null;
+    
+    const percentile = getPercentileRank(hourData.transactionCount);
+    const deltaVsAvg = stats ? ((hourData.transactionCount - stats.avgCount) / stats.avgCount * 100) : 0;
+    const nextHour = (hoveredHour + 1) % 24;
+    
+    return (
+      <div
+        style={{
+          position: 'fixed',
+          left: tooltipData.x,
+          top: tooltipData.y - 12,
+          transform: 'translate(-50%, -100%)',
+          zIndex: 1000,
+          pointerEvents: 'none',
+          animation: 'tooltipSlideIn 0.15s ease-out'
+        }}
+      >
+        <div style={{
+          backgroundColor: 'rgba(255, 255, 255, 0.98)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+          border: '1px solid rgba(226, 232, 240, 0.9)',
+          borderRadius: '14px',
+          padding: '16px 20px',
+          boxShadow: '0 12px 40px -8px rgba(0, 0, 0, 0.15), 0 4px 16px -4px rgba(0, 0, 0, 0.1)',
+          minWidth: '200px'
+        }}>
+          {/* Hour Range Header */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            marginBottom: '12px',
+            paddingBottom: '10px',
+            borderBottom: '1px solid #f1f5f9'
+          }}>
+            <div style={{
+              width: '8px',
+              height: '8px',
+              borderRadius: '4px',
+              backgroundColor: getHeatmapColor(hourData.transactionCount),
+              boxShadow: `0 0 8px ${getHeatmapColor(hourData.transactionCount)}60`
+            }} />
+            <span style={{
+              fontSize: '13px',
+              fontWeight: 600,
+              color: '#003142',
+              letterSpacing: '-0.01em'
+            }}>
+              {formatHour(hoveredHour)} – {formatHour(nextHour)}
+            </span>
+            {isPeakHour(hoveredHour) && (
+              <span style={{
+                fontSize: '10px',
+                fontWeight: 700,
+                color: '#7FB3C8',
+                backgroundColor: '#E6F4F1',
+                padding: '2px 6px',
+                borderRadius: '4px',
+                letterSpacing: '0.02em'
+              }}>
+                PEAK
+              </span>
+            )}
+          </div>
+          
+          {/* Volume Metric */}
+          <div style={{ marginBottom: '12px' }}>
+            <div style={{
+              fontSize: '11px',
+              fontWeight: 500,
+              color: 'rgba(0, 49, 66, 0.6)',
+              marginBottom: '4px',
+              textTransform: 'uppercase',
+              letterSpacing: '0.04em'
+            }}>
+              Transaction Volume
+            </div>
+            <div style={{
+              fontSize: '28px',
+              fontWeight: 700,
+              color: '#003142',
+              letterSpacing: '-0.02em',
+              fontVariantNumeric: 'tabular-nums',
+              lineHeight: 1.1
+            }}>
+              {hourData.transactionCount.toLocaleString()}
+            </div>
+          </div>
+          
+          {/* Stats Row */}
+          <div style={{
+            display: 'flex',
+            gap: '16px',
+            marginBottom: '12px'
+          }}>
+            {/* Percentile Rank */}
+            <div>
+              <div style={{
+                fontSize: '10px',
+                fontWeight: 500,
+                color: 'rgba(0, 49, 66, 0.5)',
+                marginBottom: '2px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.04em'
+              }}>
+                Rank
+              </div>
+              <div style={{
+                fontSize: '14px',
+                fontWeight: 600,
+                color: percentile >= 75 ? '#7FB3C8' : 'rgba(0, 49, 66, 0.7)'
+              }}>
+                Top {100 - percentile}%
+              </div>
+            </div>
+            
+            {/* Delta vs Average */}
+            <div>
+              <div style={{
+                fontSize: '10px',
+                fontWeight: 500,
+                color: 'rgba(0, 49, 66, 0.5)',
+                marginBottom: '2px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.04em'
+              }}>
+                vs Avg
+              </div>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                fontSize: '14px',
+                fontWeight: 600,
+                color: deltaVsAvg >= 0 ? '#059669' : '#dc2626'
+              }}>
+                <svg 
+                  width="12" 
+                  height="12" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth={2.5} 
+                  viewBox="0 0 24 24"
+                  style={{ transform: deltaVsAvg < 0 ? 'rotate(180deg)' : 'none' }}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18" />
+                </svg>
+                {Math.abs(deltaVsAvg).toFixed(0)}%
+              </div>
+            </div>
+          </div>
+          
+          {/* Amount */}
+          <div style={{
+            paddingTop: '10px',
+            borderTop: '1px solid #f1f5f9'
+          }}>
+            <div style={{
+              fontSize: '10px',
+              fontWeight: 500,
+              color: 'rgba(0, 49, 66, 0.5)',
+              marginBottom: '2px',
+              textTransform: 'uppercase',
+              letterSpacing: '0.04em'
+            }}>
+              Total Value
+            </div>
+            <div style={{
+              fontSize: '15px',
+              fontWeight: 600,
+              color: 'rgba(0, 49, 66, 0.7)',
+              fontVariantNumeric: 'tabular-nums'
+            }}>
+              {formatCurrency(hourData.totalAmount)}
+            </div>
+          </div>
+        </div>
+        
+        {/* Tooltip Arrow */}
+        <div style={{
+          position: 'absolute',
+          bottom: '-6px',
+          left: '50%',
+          width: '12px',
+          height: '12px',
+          backgroundColor: 'rgba(255, 255, 255, 0.98)',
+          border: '1px solid rgba(226, 232, 240, 0.9)',
+          borderTop: 'none',
+          borderLeft: 'none',
+          transform: 'translateX(-50%) rotate(45deg)',
+          boxShadow: '4px 4px 8px -4px rgba(0, 0, 0, 0.1)'
+        }} />
+      </div>
+    );
+  };
+
+  // Premium Bar Chart Tooltip
+  const PremiumBarTooltip = ({ active, payload, label }: any) => {
+    if (!active || !payload || !payload.length || hoveredHour !== null) return null;
+    
+    const hourData = payload[0]?.payload;
+    if (!hourData) return null;
+    
+    const deltaVsAvg = stats ? ((hourData.transactionCount - stats.avgCount) / stats.avgCount * 100) : 0;
+    const nextHour = (label + 1) % 24;
+    
+    return (
+      <div style={{
+        backgroundColor: 'rgba(255, 255, 255, 0.98)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        border: '1px solid rgba(226, 232, 240, 0.9)',
+        borderRadius: '14px',
+        padding: '14px 18px',
+        boxShadow: '0 12px 40px -8px rgba(0, 0, 0, 0.15), 0 4px 16px -4px rgba(0, 0, 0, 0.1)',
+        minWidth: '180px',
+        animation: 'tooltipFadeIn 0.15s ease-out'
+      }}>
+        {/* Hour Range */}
+        <div style={{
+          fontSize: '12px',
+          fontWeight: 600,
+          color: '#003142',
+          marginBottom: '10px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px'
+        }}>
+          <div style={{
+            width: '6px',
+            height: '6px',
+            borderRadius: '3px',
+            backgroundColor: getHeatmapColor(hourData.transactionCount)
+          }} />
+          {formatHour(label)} – {formatHour(nextHour)}
+        </div>
+        
+        {/* Volume */}
+        <div style={{
+          fontSize: '22px',
+          fontWeight: 700,
+          color: '#003142',
+          marginBottom: '8px',
+          fontVariantNumeric: 'tabular-nums'
+        }}>
+          {hourData.transactionCount.toLocaleString()}
+        </div>
+        
+        {/* Delta Badge */}
+        <div style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '4px',
+          padding: '4px 8px',
+          backgroundColor: deltaVsAvg >= 0 ? '#ecfdf5' : '#fef2f2',
+          borderRadius: '6px',
+          fontSize: '11px',
+          fontWeight: 600,
+          color: deltaVsAvg >= 0 ? '#059669' : '#dc2626'
+        }}>
+          {deltaVsAvg >= 0 ? '+' : ''}{deltaVsAvg.toFixed(0)}% vs avg
+        </div>
+      </div>
+    );
+  };
+
+  if (!hourlyData.length) {
+    return (
+      <div style={cardStyle}>
+        <div style={{ marginBottom: '20px' }}>
+          <h3 style={{ fontSize: isMobile ? '17px' : '19px', fontWeight: 700, color: '#003142', margin: 0, letterSpacing: '-0.02em' }}>
+            Hourly Transaction Heatmap
+          </h3>
+          <p style={{ fontSize: '13px', color: 'rgba(0, 49, 66, 0.6)', margin: '6px 0 0 0', fontWeight: 500 }}>
+            Transaction volume distribution by hour
+          </p>
+        </div>
+        <div style={{ 
+          height: '280px', 
+          display: 'flex', 
+          flexDirection: 'column',
+          alignItems: 'center', 
+          justifyContent: 'center',
+          backgroundColor: '#E6F4F1',
+          borderRadius: '16px',
+          border: '1px dashed #B8D9D1'
+        }}>
+          <div style={{
+            width: '56px',
+            height: '56px',
+            borderRadius: '14px',
+            backgroundColor: '#E6F4F1',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: '14px'
+          }}>
+            <svg width="26" height="26" fill="none" stroke="#94a3b8" strokeWidth={1.5} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <p style={{ color: 'rgba(0, 49, 66, 0.7)', fontSize: '15px', fontWeight: 600, margin: 0 }}>No hourly data available</p>
+          <p style={{ color: 'rgba(0, 49, 66, 0.5)', fontSize: '13px', marginTop: '6px' }}>Data will appear when transactions are recorded</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{
+      ...cardStyle,
+      padding: isMobile ? '20px' : '24px',
+      position: 'relative',
+      overflow: 'visible'
+    }}>
+      {/* Premium Header */}
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'flex-start',
+        marginBottom: '24px',
+        gap: '16px',
+        flexWrap: 'wrap'
+      }}>
+        {/* Left: Title + Subtitle */}
+        <div style={{ flex: '1 1 auto', minWidth: '200px' }}>
+          <h3 style={{ 
+            fontSize: isMobile ? '17px' : '19px', 
+            fontWeight: 700, 
+            color: '#003142', 
+            margin: 0,
+            letterSpacing: '-0.02em'
+          }}>
+            Hourly Transaction Heatmap
+          </h3>
+          <p style={{ fontSize: '13px', color: 'rgba(0, 49, 66, 0.6)', margin: '6px 0 0 0', fontWeight: 500 }}>
+            Transaction volume distribution across 24 hours
+          </p>
+        </div>
+        
+        {/* Right: Quick Stats */}
+        {stats && (
+          <div style={{
+            display: 'flex',
+            gap: '12px',
+            flexWrap: 'wrap'
+          }}>
+            {/* Peak Hour Badge */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '8px 14px',
+              backgroundColor: '#E6F4F1',
+              border: '1px solid #B8D9D1',
+              borderRadius: '10px'
+            }}>
+              <svg width="14" height="14" fill="none" stroke="#7FB3C8" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
+              </svg>
+              <span style={{ fontSize: '12px', fontWeight: 600, color: '#003142' }}>
+                Peak: {formatHour(stats.peakHours[0])}
+              </span>
+            </div>
+            
+            {/* Total Volume */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '8px 14px',
+              backgroundColor: '#f8fafc',
+              border: '1px solid #B8D9D1',
+              borderRadius: '10px'
+            }}>
+              <span style={{ fontSize: '12px', fontWeight: 500, color: 'rgba(0, 49, 66, 0.6)' }}>Total:</span>
+              <span style={{ fontSize: '13px', fontWeight: 700, color: '#003142', fontVariantNumeric: 'tabular-nums' }}>
+                {formatValueConsistent(stats.totalCount)}
+              </span>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Premium Heatmap Grid */}
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: isMobile ? 'repeat(6, 1fr)' : 'repeat(12, 1fr)', 
+        gap: isMobile ? '6px' : '8px', 
+        marginBottom: '24px' 
+      }}>
+        {hourlyData.map((hour, index) => {
+          const isHovered = hoveredHour === hour.hour;
+          const isPeak = isPeakHour(hour.hour);
+          const isLowest = isLowestHour(hour.hour) && !isPeak;
+          const colorIndex = getHeatmapColorIndex(hour.transactionCount);
+          
+          return (
+            <div
+              key={hour.hour}
+              onMouseEnter={(e) => handleCellHover(hour.hour, e)}
+              onMouseLeave={handleCellLeave}
+              style={{
+                position: 'relative',
+                aspectRatio: isMobile ? '1' : '1.1',
+                backgroundColor: getHeatmapColor(hour.transactionCount),
+                borderRadius: '12px',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                padding: isMobile ? '6px' : '8px',
+                border: isHovered 
+                  ? `2px solid ${colorIndex >= 5 ? 'rgba(255,255,255,0.6)' : '#7FB3C8'}` 
+                  : '1px solid rgba(0, 49, 66, 0.04)',
+                boxShadow: isHovered 
+                  ? `0 8px 24px -4px ${getHeatmapColor(hour.transactionCount)}50, 0 0 0 4px ${getHeatmapColor(hour.transactionCount)}20`
+                  : isPeak 
+                    ? `0 0 0 2px #7c3aed30, inset 0 0 0 1px rgba(255,255,255,0.2)`
+                    : '0 1px 2px rgba(0,0,0,0.03)',
+                transform: isHovered ? 'scale(1.04) translateY(-2px)' : 'scale(1)',
+                transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                opacity: isLoaded ? 1 : 0,
+                animation: isLoaded ? `heatmapCellFadeIn 0.4s ease-out ${index * 0.02}s both` : 'none',
+                zIndex: isHovered ? 10 : 1
+              }}
+            >
+              {/* Peak/Lowest Indicator */}
+              {isPeak && (
+                <div style={{
+                  position: 'absolute',
+                  top: '4px',
+                  right: '4px',
+                  width: '6px',
+                  height: '6px',
+                  borderRadius: '3px',
+                  backgroundColor: '#7FB3C8',
+                  boxShadow: '0 0 6px rgba(127, 179, 200, 0.5)'
+                }} />
+              )}
+              {isLowest && hour.transactionCount > 0 && (
+                <div style={{
+                  position: 'absolute',
+                  top: '4px',
+                  right: '4px',
+                  width: '6px',
+                  height: '6px',
+                  borderRadius: '3px',
+                  backgroundColor: '#94a3b8',
+                  opacity: 0.6
+                }} />
+              )}
+              
+              {/* Hour Label */}
+              <span style={{ 
+                fontSize: isMobile ? '9px' : '10px', 
+                fontWeight: 600, 
+                color: getLabelColor(hour.transactionCount),
+                marginBottom: '2px',
+                letterSpacing: '0.01em',
+                opacity: 0.9
+              }}>
+                {formatHour(hour.hour).replace(' ', '')}
+              </span>
+              
+              {/* Value */}
+              <span style={{ 
+                fontSize: isMobile ? '13px' : '14px', 
+                fontWeight: 700, 
+                color: getTextColor(hour.transactionCount),
+                fontVariantNumeric: 'tabular-nums',
+                letterSpacing: '-0.01em'
+              }}>
+                {formatValueConsistent(hour.transactionCount)}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Premium Bar Chart - Desktop only */}
+      {!isMobile && (
+        <div style={{ marginBottom: '20px' }}>
+          <ResponsiveContainer width="100%" height={160}>
+            <BarChart 
+              data={hourlyData} 
+              barSize={14} 
+              barCategoryGap="8%"
+              margin={{ left: 0, right: 0, top: 8, bottom: 0 }}
+              onMouseMove={(state: any) => {
+                if (state?.activeTooltipIndex !== undefined) {
+                  setHoveredHour(state.activeTooltipIndex);
+                }
+              }}
+              onMouseLeave={() => setHoveredHour(null)}
+            >
+              <defs>
+                {/* Gradient definitions for each intensity level */}
+                {HEATMAP_COLOR_SCALE.colors.map((color, i) => (
+                  <linearGradient key={`barGrad-${i}`} id={`barGradient-${i}`} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={color} stopOpacity={1} />
+                    <stop offset="100%" stopColor={color} stopOpacity={0.7} />
+                  </linearGradient>
+                ))}
+              </defs>
+              
+              <CartesianGrid 
+                strokeDasharray="2 4" 
+                stroke="#D1E8E3" 
+                vertical={false}
+                strokeWidth={0.8}
+              />
+              <XAxis
+                dataKey="hour"
+                stroke="#B8D9D1"
+                tick={{ fill: '#64748b', fontSize: 10, fontWeight: 500 }}
+                tickLine={false}
+                axisLine={{ stroke: '#f1f5f9', strokeWidth: 1 }}
+                tickFormatter={formatHour}
+                interval={1}
+                dy={8}
+              />
+              <YAxis
+                stroke="#B8D9D1"
+                tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 500 }}
+                tickLine={false}
+                axisLine={false}
+                tickFormatter={formatNumber}
+                width={40}
+                tickMargin={8}
+              />
+              <Tooltip content={<PremiumBarTooltip />} cursor={{ fill: 'rgba(79, 70, 229, 0.04)', radius: 4 }} />
+              <Bar 
+                dataKey="transactionCount" 
+                radius={[6, 6, 0, 0]}
+                animationBegin={200}
+                animationDuration={800}
+                animationEasing="ease-out"
+              >
+                {hourlyData.map((entry) => {
+                  const colorIndex = getHeatmapColorIndex(entry.transactionCount);
+                  const isBarHovered = hoveredHour === entry.hour;
+                  return (
+                    <Cell 
+                      key={`bar-${entry.hour}`} 
+                      fill={`url(#barGradient-${colorIndex})`}
+                      style={{
+                        filter: isBarHovered ? 'brightness(1.1)' : 'none',
+                        transition: 'filter 0.15s ease'
+                      }}
+                    />
+                  );
+                })}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
+      {/* Premium Continuous Gradient Legend */}
+      <div style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        gap: isMobile ? '12px' : '16px',
+        padding: '14px 20px',
+        backgroundColor: '#E6F4F1',
+        borderRadius: '12px',
+        border: '1px solid #D1E8E3'
+      }}>
+        {/* Low Label */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', minWidth: '40px' }}>
+          <span style={{ fontSize: '11px', fontWeight: 600, color: 'rgba(0, 49, 66, 0.6)' }}>Low</span>
+          {stats && (
+            <span style={{ fontSize: '10px', color: 'rgba(0, 49, 66, 0.5)', fontVariantNumeric: 'tabular-nums' }}>
+              {formatValueConsistent(stats.minCount)}
+            </span>
+          )}
+        </div>
+        
+        {/* Continuous Gradient Bar */}
+        <div style={{
+          flex: 1,
+          maxWidth: isMobile ? '160px' : '240px',
+          height: '10px',
+          borderRadius: '5px',
+          background: `linear-gradient(to right, ${HEATMAP_COLOR_SCALE.colors.slice(1).join(', ')})`,
+          boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.06)'
+        }} />
+        
+        {/* High Label */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minWidth: '40px' }}>
+          <span style={{ fontSize: '11px', fontWeight: 600, color: 'rgba(0, 49, 66, 0.6)' }}>High</span>
+          {stats && (
+            <span style={{ fontSize: '10px', color: 'rgba(0, 49, 66, 0.5)', fontVariantNumeric: 'tabular-nums' }}>
+              {formatValueConsistent(stats.maxCount)}
+            </span>
+          )}
+        </div>
+        
+        {/* Legend Indicators */}
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '12px',
+          marginLeft: '16px',
+          paddingLeft: '16px',
+          borderLeft: '1px solid #e2e8f0'
+        }}>
+          {/* Peak Indicator */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div style={{
+              width: '6px',
+              height: '6px',
+              borderRadius: '3px',
+              backgroundColor: '#7FB3C8',
+              boxShadow: '0 0 4px rgba(127, 179, 200, 0.4)'
+            }} />
+            <span style={{ fontSize: '11px', fontWeight: 500, color: 'rgba(0, 49, 66, 0.6)' }}>Peak</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Tooltip Portal */}
+      {tooltipData && <PremiumTooltip />}
+      
+      {/* Animation Styles */}
+      <style>{`
+        @keyframes heatmapCellFadeIn {
+          from {
+            opacity: 0;
+            transform: scale(0.9);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+        @keyframes tooltipSlideIn {
+          from {
+            opacity: 0;
+            transform: translate(-50%, calc(-100% + 8px));
+          }
+          to {
+            opacity: 1;
+            transform: translate(-50%, -100%);
+          }
+        }
+      `}</style>
+    </div>
+  );
+};
+
+// Premium Status Colors - Refined semantic palette matching Charts.tsx
+const STATUS_COLORS: { [key: string]: { main: string; light: string; glow: string; border: string } } = {
+  'SUCCESS': { 
+    main: '#2E9C7A',      // Semantic success fill
+    light: 'rgba(46, 156, 122, 0.14)',
+    glow: 'rgba(46, 156, 122, 0.4)',
+    border: 'rgba(46, 156, 122, 0.35)'
+  },
+  'PENDING': { 
+    main: '#D6A13A',      // Semantic pending fill
+    light: 'rgba(214, 161, 58, 0.16)',
+    glow: 'rgba(214, 161, 58, 0.4)',
+    border: 'rgba(214, 161, 58, 0.35)'
+  },
+  'FAILED': { 
+    main: '#D65A5A',      // Semantic failed fill
+    light: 'rgba(214, 90, 90, 0.14)',
+    glow: 'rgba(214, 90, 90, 0.4)',
+    border: 'rgba(214, 90, 90, 0.35)'
+  },
 };
 
 const AdvancedCharts = () => {
@@ -45,6 +880,19 @@ const AdvancedCharts = () => {
   const [hourlyData, setHourlyData] = useState<HourlyTransaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [dateRange, setDateRange] = useState({ startDate: '', endDate: '' });
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [showVolume, setShowVolume] = useState(true);
+  const [showGTV, setShowGTV] = useState(true);
+  const [showSuccess, setShowSuccess] = useState(true);
+  const [showPending, setShowPending] = useState(true);
+  const [showFailed, setShowFailed] = useState(true);
+  const [statusViewMode, setStatusViewMode] = useState<'count' | 'percentage'>('count');
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     const endDate = new Date();
@@ -104,54 +952,435 @@ const AdvancedCharts = () => {
   };
 
   const cardStyle: React.CSSProperties = {
-    backgroundColor: 'white',
+    backgroundColor: '#ffffff',
     borderRadius: '16px',
-    padding: '24px',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-    border: '1px solid #f1f5f9',
-  };
-
-  const inputStyle: React.CSSProperties = {
-    padding: '8px 16px',
-    backgroundColor: '#f8fafc',
-    border: '1px solid #e2e8f0',
-    borderRadius: '12px',
-    fontSize: '14px',
-    outline: 'none',
+    padding: isMobile ? '18px' : '24px',
+    border: '1px solid #D1E8E3',
+    boxShadow: '0 1px 3px rgba(0, 49, 66, 0.04)'
   };
 
   // Prepare stacked bar data for status split by date
-  const stackedStatusData = dailyData.map(day => ({
-    date: day.date,
-    SUCCESS: day.successfulTransactions,
-    FAILED: day.failedTransactions,
-    PENDING: day.totalTransactions - day.successfulTransactions - day.failedTransactions,
-  }));
+  const stackedStatusData = dailyData.map(day => {
+    const success = day.successfulTransactions;
+    const failed = day.failedTransactions;
+    const pending = day.totalTransactions - success - failed;
+    const total = day.totalTransactions;
+    
+    if (statusViewMode === 'percentage' && total > 0) {
+      return {
+        date: day.date,
+        SUCCESS: (success / total) * 100,
+        FAILED: (failed / total) * 100,
+        PENDING: (pending / total) * 100,
+        // Keep raw values for tooltip
+        _successRaw: success,
+        _failedRaw: failed,
+        _pendingRaw: pending,
+      };
+    }
+    
+    return {
+      date: day.date,
+      SUCCESS: success,
+      FAILED: failed,
+      PENDING: pending,
+    };
+  });
 
-  // Prepare heatmap data
-  const getHeatmapColor = (count: number) => {
-    const maxCount = Math.max(...hourlyData.map(h => h.transactionCount), 1);
-    const intensity = count / maxCount;
-    if (intensity > 0.8) return '#6366f1';
-    if (intensity > 0.6) return '#818cf8';
-    if (intensity > 0.4) return '#a5b4fc';
-    if (intensity > 0.2) return '#c7d2fe';
-    if (intensity > 0) return '#e0e7ff';
-    return '#f1f5f9';
+  // Premium tooltip for Daily Volume vs GTV chart
+  const PremiumDualAxisTooltip = ({ active, payload, label }: any) => {
+    if (!active || !payload || !payload.length) return null;
+
+    const volumeData = payload.find((p: any) => p.dataKey === 'totalTransactions');
+    const gtvData = payload.find((p: any) => p.dataKey === 'totalAmount');
+    
+    // Calculate delta vs previous day
+    const currentIndex = dailyData.findIndex(d => d.date === label);
+    const previousDay = currentIndex > 0 ? dailyData[currentIndex - 1] : null;
+    
+    const volumeDelta = previousDay ? volumeData?.value - previousDay.totalTransactions : null;
+    const gtvDelta = previousDay ? gtvData?.value - previousDay.totalAmount : null;
+    const gtvDeltaPercent = previousDay && previousDay.totalAmount > 0 
+      ? ((gtvDelta! / previousDay.totalAmount) * 100).toFixed(1) 
+      : null;
+
+    return (
+      <div style={{
+        backgroundColor: 'rgba(255, 255, 255, 0.98)',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+        border: '1px solid rgba(226, 232, 240, 0.8)',
+        borderRadius: '14px',
+        padding: '16px 20px',
+        boxShadow: '0 8px 32px -4px rgba(0, 0, 0, 0.12), 0 4px 16px -4px rgba(0, 0, 0, 0.08)',
+        minWidth: '220px',
+        animation: 'tooltipFadeIn 0.15s ease-out'
+      }}>
+        {/* Date Header */}
+        <p style={{ 
+          fontSize: '11px', 
+          fontWeight: 600, 
+          color: 'rgba(0, 49, 66, 0.6)', 
+          margin: '0 0 12px 0',
+          textTransform: 'uppercase',
+          letterSpacing: '0.05em'
+        }}>
+          {new Date(label).toLocaleDateString('en-US', { 
+            weekday: 'short',
+            month: 'short', 
+            day: 'numeric', 
+            year: 'numeric' 
+          })}
+        </p>
+        
+        {/* Volume Metric */}
+        {volumeData && (
+          <div style={{ marginBottom: '12px' }}>
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px',
+              marginBottom: '6px'
+            }}>
+              <div style={{ 
+                width: '8px', 
+                height: '8px', 
+                borderRadius: '3px', 
+                backgroundColor: COLORS.primary,
+                boxShadow: `0 0 8px ${COLORS.primary}40`
+              }} />
+              <span style={{ 
+                fontSize: '12px', 
+                color: 'rgba(0, 49, 66, 0.6)',
+                fontWeight: 500 
+              }}>
+                Volume
+              </span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+              <span style={{ 
+                fontSize: '24px', 
+                fontWeight: 700, 
+                color: '#003142',
+                fontVariantNumeric: 'tabular-nums',
+                letterSpacing: '-0.02em'
+              }}>
+                {formatNumber(volumeData.value)}
+              </span>
+              {volumeDelta !== null && (
+                <span style={{ 
+                  fontSize: '11px', 
+                  fontWeight: 600, 
+                  color: volumeDelta >= 0 ? '#10b981' : '#ef4444'
+                }}>
+                  {volumeDelta >= 0 ? '+' : ''}{volumeDelta >= 0 ? formatNumber(volumeDelta) : formatNumber(Math.abs(volumeDelta))}
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+        
+        {/* GTV Metric */}
+        {gtvData && (
+          <div>
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px',
+              marginBottom: '6px'
+            }}>
+              <div style={{ 
+                width: '8px', 
+                height: '8px', 
+                borderRadius: '3px', 
+                backgroundColor: COLORS.success,
+                boxShadow: `0 0 8px ${COLORS.success}40`
+              }} />
+              <span style={{ 
+                fontSize: '12px', 
+                color: 'rgba(0, 49, 66, 0.6)',
+                fontWeight: 500 
+              }}>
+                GTV
+              </span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', flexWrap: 'wrap' }}>
+              <span style={{ 
+                fontSize: '24px', 
+                fontWeight: 700, 
+                color: '#003142',
+                fontVariantNumeric: 'tabular-nums',
+                letterSpacing: '-0.02em'
+              }}>
+                {formatCurrency(gtvData.value)}
+              </span>
+              {gtvDelta !== null && gtvDeltaPercent !== null && (
+                <div style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  padding: '4px 8px',
+                  backgroundColor: gtvDelta >= 0 ? '#ecfdf5' : '#fef2f2',
+                  borderRadius: '6px',
+                  border: `1px solid ${gtvDelta >= 0 ? '#d1fae5' : '#fee2e2'}`
+                }}>
+                  <svg 
+                    width="12" 
+                    height="12" 
+                    fill="none" 
+                    stroke={gtvDelta >= 0 ? '#10b981' : '#ef4444'} 
+                    strokeWidth={2.5} 
+                    viewBox="0 0 24 24"
+                  >
+                    <path 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      d={gtvDelta >= 0 
+                        ? 'M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18' 
+                        : 'M19.5 13.5L12 21m0 0l-7.5-7.5M12 21V3'
+                      } 
+                    />
+                  </svg>
+                  <span style={{ 
+                    fontSize: '11px', 
+                    fontWeight: 600, 
+                    color: gtvDelta >= 0 ? '#059669' : '#dc2626'
+                  }}>
+                    {gtvDelta >= 0 ? '+' : ''}{gtvDeltaPercent}%
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // Premium tooltip for Status Split stacked bar chart
+  const PremiumStatusTooltip = ({ active, payload, label }: any) => {
+    if (!active || !payload || !payload.length) return null;
+
+    const dataPoint = payload[0]?.payload;
+    
+    // Get values (handle both count and percentage modes)
+    let successValue, pendingValue, failedValue, total;
+    
+    if (statusViewMode === 'percentage') {
+      // In percentage mode, use raw values from payload for display
+      successValue = dataPoint?._successRaw || 0;
+      pendingValue = dataPoint?._pendingRaw || 0;
+      failedValue = dataPoint?._failedRaw || 0;
+      total = successValue + pendingValue + failedValue;
+    } else {
+      // In count mode, use the values directly
+      successValue = dataPoint?.SUCCESS || 0;
+      pendingValue = dataPoint?.PENDING || 0;
+      failedValue = dataPoint?.FAILED || 0;
+      total = successValue + pendingValue + failedValue;
+    }
+    
+    const getPercentage = (value: number) => total > 0 ? ((value / total) * 100).toFixed(1) : '0.0';
+
+    return (
+      <div style={{
+        backgroundColor: 'rgba(255, 255, 255, 0.98)',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+        border: '1px solid rgba(226, 232, 240, 0.8)',
+        borderRadius: '14px',
+        padding: '16px 20px',
+        boxShadow: '0 8px 32px -4px rgba(0, 0, 0, 0.12), 0 4px 16px -4px rgba(0, 0, 0, 0.08)',
+        minWidth: '200px',
+        animation: 'tooltipFadeIn 0.15s ease-out'
+      }}>
+        {/* Date Header */}
+        <p style={{ 
+          fontSize: '11px', 
+          fontWeight: 600, 
+          color: 'rgba(0, 49, 66, 0.6)', 
+          margin: '0 0 12px 0',
+          textTransform: 'uppercase',
+          letterSpacing: '0.05em',
+          borderBottom: '1px solid rgba(0, 49, 66, 0.1)',
+          paddingBottom: '8px'
+        }}>
+          {new Date(label).toLocaleDateString('en-US', { 
+            month: 'short', 
+            day: 'numeric', 
+            year: 'numeric' 
+          })}
+        </p>
+        
+        {/* Success Metric */}
+        {showSuccess && successValue > 0 && (
+          <div style={{ marginBottom: '10px' }}>
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'space-between',
+              gap: '12px',
+              marginBottom: '4px'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ 
+                  width: '8px', 
+                  height: '8px', 
+                  borderRadius: '50%', 
+                  backgroundColor: STATUS_COLORS.SUCCESS.main,
+                  boxShadow: `0 0 8px ${STATUS_COLORS.SUCCESS.glow}`
+                }} />
+                <span style={{ fontSize: '12px', color: 'rgba(0, 49, 66, 0.6)', fontWeight: 500 }}>
+                  Success
+                </span>
+              </div>
+              <span style={{ 
+                fontSize: '13px', 
+                fontWeight: 700, 
+                color: '#003142',
+                fontVariantNumeric: 'tabular-nums'
+              }}>
+                {formatNumber(successValue)}
+              </span>
+            </div>
+            <div style={{ 
+              fontSize: '11px', 
+              color: STATUS_COLORS.SUCCESS.main,
+              fontWeight: 600,
+              textAlign: 'right'
+            }}>
+              {getPercentage(successValue)}%
+            </div>
+          </div>
+        )}
+        
+        {/* Pending Metric */}
+        {showPending && pendingValue > 0 && (
+          <div style={{ marginBottom: '10px' }}>
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'space-between',
+              gap: '12px',
+              marginBottom: '4px'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ 
+                  width: '8px', 
+                  height: '8px', 
+                  borderRadius: '50%', 
+                  backgroundColor: STATUS_COLORS.PENDING.main,
+                  boxShadow: `0 0 8px ${STATUS_COLORS.PENDING.glow}`
+                }} />
+                <span style={{ fontSize: '12px', color: 'rgba(0, 49, 66, 0.6)', fontWeight: 500 }}>
+                  Pending
+                </span>
+              </div>
+              <span style={{ 
+                fontSize: '13px', 
+                fontWeight: 700, 
+                color: '#003142',
+                fontVariantNumeric: 'tabular-nums'
+              }}>
+                {formatNumber(pendingValue)}
+              </span>
+            </div>
+            <div style={{ 
+              fontSize: '11px', 
+              color: STATUS_COLORS.PENDING.main,
+              fontWeight: 600,
+              textAlign: 'right'
+            }}>
+              {getPercentage(pendingValue)}%
+            </div>
+          </div>
+        )}
+        
+        {/* Failed Metric */}
+        {showFailed && failedValue > 0 && (
+          <div style={{ marginBottom: '10px' }}>
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'space-between',
+              gap: '12px',
+              marginBottom: '4px'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ 
+                  width: '8px', 
+                  height: '8px', 
+                  borderRadius: '50%', 
+                  backgroundColor: STATUS_COLORS.FAILED.main,
+                  boxShadow: `0 0 8px ${STATUS_COLORS.FAILED.glow}`
+                }} />
+                <span style={{ fontSize: '12px', color: 'rgba(0, 49, 66, 0.6)', fontWeight: 500 }}>
+                  Failed
+                </span>
+              </div>
+              <span style={{ 
+                fontSize: '13px', 
+                fontWeight: 700, 
+                color: '#003142',
+                fontVariantNumeric: 'tabular-nums'
+              }}>
+                {formatNumber(failedValue)}
+              </span>
+            </div>
+            <div style={{ 
+              fontSize: '11px', 
+              color: STATUS_COLORS.FAILED.main,
+              fontWeight: 600,
+              textAlign: 'right'
+            }}>
+              {getPercentage(failedValue)}%
+            </div>
+          </div>
+        )}
+        
+        {/* Total */}
+        <div style={{
+          marginTop: '12px',
+          paddingTop: '12px',
+          borderTop: '1px solid rgba(0, 49, 66, 0.1)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}>
+          <span style={{ 
+            fontSize: '12px', 
+            fontWeight: 600, 
+            color: 'rgba(0, 49, 66, 0.6)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.03em'
+          }}>
+            Total
+          </span>
+          <span style={{ 
+            fontSize: '16px', 
+            fontWeight: 700, 
+            color: '#003142',
+            fontVariantNumeric: 'tabular-nums'
+          }}>
+            {formatNumber(total)}
+          </span>
+        </div>
+      </div>
+    );
   };
 
   if (loading) {
     return (
       <div>
-        <div style={{ ...cardStyle, marginBottom: '24px' }}>
-          <div style={{ height: '24px', backgroundColor: '#e2e8f0', borderRadius: '8px', width: '25%', marginBottom: '24px' }}></div>
-          <div style={{ height: '350px', backgroundColor: '#f1f5f9', borderRadius: '12px' }}></div>
+        <div style={{ ...cardStyle, marginBottom: '20px' }}>
+          <div className="skeleton" style={{ height: '20px', width: '200px', borderRadius: '6px', marginBottom: '20px' }} />
+          <div className="skeleton" style={{ height: isMobile ? '260px' : '340px', borderRadius: '12px' }} />
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
           {[...Array(2)].map((_, i) => (
             <div key={i} style={cardStyle}>
-              <div style={{ height: '24px', backgroundColor: '#e2e8f0', borderRadius: '8px', width: '33%', marginBottom: '24px' }}></div>
-              <div style={{ height: '280px', backgroundColor: '#f1f5f9', borderRadius: '12px' }}></div>
+              <div className="skeleton" style={{ height: '20px', width: '160px', borderRadius: '6px', marginBottom: '20px' }} />
+              <div className="skeleton" style={{ height: isMobile ? '220px' : '260px', borderRadius: '12px' }} />
             </div>
           ))}
         </div>
@@ -162,140 +1391,466 @@ const AdvancedCharts = () => {
   return (
     <div>
       {/* Date Range Selector */}
-      <div style={{ ...cardStyle, marginBottom: '24px' }}>
-        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <svg style={{ width: '20px', height: '20px', color: '#94a3b8' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            <span style={{ fontSize: '14px', fontWeight: 500, color: '#475569' }}>Date Range:</span>
+      <div style={{ ...cardStyle, marginBottom: '20px' }}>
+        <div style={{ 
+          display: 'flex', 
+          flexDirection: isMobile ? 'column' : 'row',
+          alignItems: isMobile ? 'stretch' : 'center', 
+          gap: '16px' 
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{
+              width: '36px',
+              height: '36px',
+              borderRadius: '10px',
+              backgroundColor: '#E6F4F1',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <svg width="18" height="18" fill="none" stroke="#4f46e5" strokeWidth={1.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+              </svg>
+            </div>
+            <span style={{ fontSize: '14px', fontWeight: 600, color: 'rgba(0, 49, 66, 0.7)' }}>Analysis Period</span>
           </div>
-          <input
-            type="date"
-            value={dateRange.startDate}
-            onChange={(e) => setDateRange({ ...dateRange, startDate: e.target.value })}
-            style={inputStyle}
-          />
-          <span style={{ color: '#94a3b8' }}>to</span>
-          <input
-            type="date"
-            value={dateRange.endDate}
-            onChange={(e) => setDateRange({ ...dateRange, endDate: e.target.value })}
-            style={inputStyle}
-          />
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '12px',
+            flex: isMobile ? 1 : 'none'
+          }}>
+            <input
+              type="date"
+              value={dateRange.startDate}
+              onChange={(e) => setDateRange({ ...dateRange, startDate: e.target.value })}
+              style={{
+                padding: '10px 14px',
+                backgroundColor: '#f8fafc',
+                border: '1px solid #B8D9D1',
+                borderRadius: '10px',
+                fontSize: '14px',
+                outline: 'none',
+                flex: isMobile ? 1 : 'none',
+                minWidth: 0,
+                color: 'rgba(0, 49, 66, 0.7)'
+              }}
+            />
+            <span style={{ color: 'rgba(0, 49, 66, 0.5)', fontSize: '14px', flexShrink: 0 }}>to</span>
+            <input
+              type="date"
+              value={dateRange.endDate}
+              onChange={(e) => setDateRange({ ...dateRange, endDate: e.target.value })}
+              style={{
+                padding: '10px 14px',
+                backgroundColor: '#f8fafc',
+                border: '1px solid #B8D9D1',
+                borderRadius: '10px',
+                fontSize: '14px',
+                outline: 'none',
+                flex: isMobile ? 1 : 'none',
+                minWidth: 0,
+                color: 'rgba(0, 49, 66, 0.7)'
+              }}
+            />
+          </div>
         </div>
       </div>
 
-      {/* Chart 1: Daily Volume vs GTV (Bar + Line Combo) */}
-      <div style={{ ...cardStyle, marginBottom: '24px' }}>
-        <div style={{ marginBottom: '24px' }}>
-          <h3 style={{ fontSize: '18px', fontWeight: 600, color: '#0f172a', margin: 0 }}>Daily Volume vs GTV</h3>
-          <p style={{ fontSize: '14px', color: '#64748b', margin: '4px 0 0 0' }}>Transaction count (bars) and Gross Transaction Value (line)</p>
+      {/* Chart 1: Premium Daily Volume vs GTV */}
+      <div style={{ 
+        ...cardStyle, 
+        marginBottom: '20px',
+        padding: '24px',
+        position: 'relative',
+        overflow: 'hidden'
+      }}>
+        {/* Premium Header with Controls */}
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'flex-start',
+          marginBottom: '20px',
+          gap: '16px',
+          flexWrap: 'wrap'
+        }}>
+          {/* Left: Title + Subtitle */}
+          <div style={{ flex: '1 1 auto', minWidth: '200px' }}>
+            <h3 style={{ 
+              fontSize: isMobile ? '17px' : '19px', 
+              fontWeight: 700, 
+              color: '#003142', 
+              margin: 0,
+              letterSpacing: '-0.02em'
+            }}>
+              Daily Volume vs GTV
+            </h3>
+            <p style={{ fontSize: '13px', color: 'rgba(0, 49, 66, 0.6)', margin: '6px 0 0 0', fontWeight: 500 }}>
+              Transaction count (bars) and gross transaction value (line)
+            </p>
+          </div>
+          
+          {/* Right: Interactive Legend Chips */}
+          <div style={{
+            display: 'flex',
+            gap: '8px',
+            alignItems: 'center',
+            flexWrap: 'wrap'
+          }}>
+            {/* Volume Toggle */}
+            <button
+              onClick={() => setShowVolume(!showVolume)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '8px 14px',
+                backgroundColor: showVolume ? '#E6F4F1' : '#F0F9F7',
+                border: `1px solid ${showVolume ? COLORS.primary : '#B8D9D1'}`,
+                borderRadius: '10px',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+                fontSize: '13px',
+                fontWeight: 600,
+                color: showVolume ? COLORS.primary : '#64748b',
+                opacity: showVolume ? 1 : 0.6
+              }}
+            >
+              <div style={{ 
+                width: '8px', 
+                height: '8px', 
+                borderRadius: '3px', 
+                backgroundColor: COLORS.primary,
+                boxShadow: showVolume ? `0 0 8px ${COLORS.primary}40` : 'none',
+                transition: 'box-shadow 0.15s ease'
+              }} />
+              Volume
+            </button>
+            
+            {/* GTV Toggle */}
+            <button
+              onClick={() => setShowGTV(!showGTV)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '8px 14px',
+                backgroundColor: showGTV ? '#D1FAE5' : '#F0F9F7',
+                border: `1px solid ${showGTV ? COLORS.success : '#B8D9D1'}`,
+                borderRadius: '10px',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+                fontSize: '13px',
+                fontWeight: 600,
+                color: showGTV ? COLORS.success : '#64748b',
+                opacity: showGTV ? 1 : 0.6
+              }}
+            >
+              <div style={{ 
+                width: '8px', 
+                height: '8px', 
+                borderRadius: '3px', 
+                backgroundColor: COLORS.success,
+                boxShadow: showGTV ? `0 0 8px ${COLORS.success}40` : 'none',
+                transition: 'box-shadow 0.15s ease'
+              }} />
+              GTV
+            </button>
+            
+            {/* Download Button (UI only) */}
+            <button
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '36px',
+                height: '36px',
+                backgroundColor: '#f8fafc',
+                border: '1px solid #B8D9D1',
+                borderRadius: '10px',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+                color: 'rgba(0, 49, 66, 0.6)'
+              }}
+              title="Download chart data"
+            >
+              <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+              </svg>
+            </button>
+          </div>
         </div>
+        
         {dailyData.length > 0 ? (
-          <ResponsiveContainer width="100%" height={380}>
-            <ComposedChart data={dailyData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
-              <XAxis
-                dataKey="date"
-                stroke="#94a3b8"
-                tick={{ fill: '#64748b', fontSize: 11 }}
-                tickLine={false}
-                axisLine={false}
-                tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                interval={dailyData.length > 15 ? Math.floor(dailyData.length / 10) : 0}
-              />
-              <YAxis
-                yAxisId="left"
-                stroke="#94a3b8"
-                tick={{ fill: '#64748b', fontSize: 12 }}
-                tickLine={false}
-                axisLine={false}
-                tickFormatter={formatNumber}
-                label={{ value: 'Volume', angle: -90, position: 'insideLeft', fill: '#64748b', fontSize: 12 }}
-              />
-              <YAxis
-                yAxisId="right"
-                orientation="right"
-                stroke="#94a3b8"
-                tick={{ fill: '#64748b', fontSize: 12 }}
-                tickLine={false}
-                axisLine={false}
-                tickFormatter={formatCurrency}
-                label={{ value: 'GTV', angle: 90, position: 'insideRight', fill: '#64748b', fontSize: 12 }}
-              />
-              <Tooltip
-                contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}
-                formatter={(value: number | undefined, name: string) => {
-                  if (value === undefined) return ['', name];
-                  if (name === 'totalTransactions') return [formatNumber(value), 'Volume'];
-                  if (name === 'totalAmount') return [formatCurrency(value), 'GTV'];
-                  return [value, name];
-                }}
-                labelFormatter={(label) => new Date(label).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-              />
-              <Legend 
-                formatter={(value) => value === 'totalTransactions' ? 'Volume' : 'GTV'}
-                wrapperStyle={{ paddingTop: '20px' }}
-              />
-              <Bar yAxisId="left" dataKey="totalTransactions" fill={COLORS.primary} radius={[4, 4, 0, 0]} barSize={dailyData.length > 30 ? 8 : 16} />
-              <Line yAxisId="right" type="monotone" dataKey="totalAmount" stroke={COLORS.success} strokeWidth={3} dot={false} />
-            </ComposedChart>
-          </ResponsiveContainer>
+          <div style={{ position: 'relative' }}>
+            <ResponsiveContainer width="100%" height={isMobile ? 300 : 380}>
+              <ComposedChart 
+                data={dailyData} 
+                margin={{ left: isMobile ? -10 : 5, right: isMobile ? -5 : 15, top: 20, bottom: 10 }}
+              >
+                <defs>
+                  {/* Gradient for bars */}
+                  <linearGradient id="volumeGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={COLORS.primary} stopOpacity={0.9}/>
+                    <stop offset="100%" stopColor={COLORS.primaryLight} stopOpacity={0.7}/>
+                  </linearGradient>
+                  
+                  {/* Glow effect for line */}
+                  <filter id="lineGlow" x="-20%" y="-20%" width="140%" height="140%">
+                    <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                    <feMerge>
+                      <feMergeNode in="coloredBlur"/>
+                      <feMergeNode in="SourceGraphic"/>
+                    </feMerge>
+                  </filter>
+                </defs>
+                
+                {/* Ultra-light gridlines */}
+                <CartesianGrid 
+                  strokeDasharray="2 4" 
+                  stroke="#D1E8E3" 
+                  vertical={false}
+                  strokeWidth={0.8}
+                  strokeOpacity={0.5}
+                />
+                
+                {/* X-Axis - Reduced labels */}
+                <XAxis
+                  dataKey="date"
+                  stroke="#B8D9D1"
+                  tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 500 }}
+                  tickLine={false}
+                  axisLine={{ stroke: '#f1f5f9', strokeWidth: 1 }}
+                  tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  interval={dailyData.length > 20 ? Math.floor(dailyData.length / 8) : Math.floor(dailyData.length / 6)}
+                  dy={10}
+                  tickMargin={8}
+                />
+                
+                {/* Y-Axis Left - Volume */}
+                <YAxis
+                  yAxisId="left"
+                  stroke="#B8D9D1"
+                  tick={{ fill: '#64748b', fontSize: 11, fontWeight: 500 }}
+                  tickLine={false}
+                  axisLine={false}
+                  tickFormatter={formatNumber}
+                  width={isMobile ? 45 : 55}
+                  tickMargin={8}
+                  label={{ 
+                    value: 'Volume', 
+                    angle: -90, 
+                    position: 'insideLeft',
+                    style: { 
+                      fill: '#64748b', 
+                      fontSize: '12px', 
+                      fontWeight: 600,
+                      textAnchor: 'middle'
+                    }
+                  }}
+                />
+                
+                {/* Y-Axis Right - GTV */}
+                <YAxis
+                  yAxisId="right"
+                  orientation="right"
+                  stroke="#B8D9D1"
+                  tick={{ fill: '#64748b', fontSize: 11, fontWeight: 500 }}
+                  tickLine={false}
+                  axisLine={false}
+                  tickFormatter={formatCurrency}
+                  width={isMobile ? 50 : 60}
+                  tickMargin={8}
+                  label={{ 
+                    value: 'GTV (₹)', 
+                    angle: 90, 
+                    position: 'insideRight',
+                    style: { 
+                      fill: '#64748b', 
+                      fontSize: '12px', 
+                      fontWeight: 600,
+                      textAnchor: 'middle'
+                    }
+                  }}
+                />
+                
+                {/* Premium Tooltip */}
+                <Tooltip 
+                  content={<PremiumDualAxisTooltip />}
+                  cursor={{ 
+                    stroke: '#cbd5e1', 
+                    strokeWidth: 1,
+                    strokeDasharray: '4 4'
+                  }}
+                />
+                
+                {/* Premium Bars - Volume */}
+                {showVolume && (
+                  <Bar 
+                    yAxisId="left" 
+                    dataKey="totalTransactions" 
+                    fill="url(#volumeGradient)"
+                    radius={[10, 10, 0, 0]} 
+                    barSize={dailyData.length > 30 ? 10 : (dailyData.length > 20 ? 14 : 18)}
+                    animationBegin={0}
+                    animationDuration={800}
+                    animationEasing="ease-out"
+                  />
+                )}
+                
+                {/* Premium Line - GTV */}
+                {showGTV && (
+                  <Line 
+                    yAxisId="right" 
+                    type="monotone" 
+                    dataKey="totalAmount" 
+                    stroke={COLORS.success} 
+                    strokeWidth={3} 
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    dot={false}
+                    activeDot={{ 
+                      r: 6, 
+                      fill: COLORS.success, 
+                      stroke: '#ffffff', 
+                      strokeWidth: 3,
+                      style: { 
+                        filter: 'drop-shadow(0 2px 4px rgba(5, 150, 105, 0.3))'
+                      }
+                    }}
+                    style={{ filter: 'url(#lineGlow)' }}
+                    animationBegin={200}
+                    animationDuration={1000}
+                    animationEasing="ease-out"
+                  />
+                )}
+              </ComposedChart>
+            </ResponsiveContainer>
+          </div>
         ) : (
-          <div style={{ height: '380px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <p style={{ color: '#94a3b8' }}>No data for selected date range</p>
+          <div style={{ 
+            height: '300px', 
+            display: 'flex', 
+            flexDirection: 'column',
+            alignItems: 'center', 
+            justifyContent: 'center',
+            backgroundColor: '#E6F4F1',
+            borderRadius: '16px',
+            border: '1px dashed #B8D9D1'
+          }}>
+            <div style={{
+              width: '64px',
+              height: '64px',
+              borderRadius: '16px',
+              backgroundColor: '#E6F4F1',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: '16px'
+            }}>
+              <svg width="28" height="28" fill="none" stroke="#94a3b8" strokeWidth={1.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
+              </svg>
+            </div>
+            <p style={{ color: 'rgba(0, 49, 66, 0.7)', fontSize: '15px', fontWeight: 600, margin: 0 }}>No data for selected date range</p>
+            <p style={{ color: 'rgba(0, 49, 66, 0.5)', fontSize: '13px', marginTop: '6px' }}>Adjust the date range to view chart</p>
           </div>
         )}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
-        {/* Chart 2: Payment Method Split (Donut Chart) */}
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
+        {/* Chart 2: Payment Method Split */}
         <div style={cardStyle}>
-          <div style={{ marginBottom: '24px' }}>
-            <h3 style={{ fontSize: '18px', fontWeight: 600, color: '#0f172a', margin: 0 }}>Payment Method Split</h3>
-            <p style={{ fontSize: '14px', color: '#64748b', margin: '4px 0 0 0' }}>Distribution by payment type</p>
+          <div style={{ marginBottom: '20px' }}>
+            <h3 style={{ 
+              fontSize: isMobile ? '16px' : '17px', 
+              fontWeight: 600, 
+              color: '#003142', 
+              margin: 0,
+              letterSpacing: '-0.01em'
+            }}>
+              Payment Method Split
+            </h3>
+            <p style={{ fontSize: '13px', color: 'rgba(0, 49, 66, 0.6)', margin: '4px 0 0 0' }}>
+              Distribution by payment type
+            </p>
           </div>
+          
           {paymentMethods.length > 0 ? (
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-              <ResponsiveContainer width="55%" height={280}>
+            <div style={{ 
+              display: 'flex', 
+              flexDirection: isMobile ? 'column' : 'row',
+              alignItems: 'center',
+              gap: '16px'
+            }}>
+              <ResponsiveContainer width={isMobile ? '100%' : '50%'} height={isMobile ? 200 : 240}>
                 <PieChart>
                   <Pie
                     data={paymentMethods.map(m => ({ name: m.paymentMethod, value: m.percentage, amount: m.totalAmount, count: m.transactionCount }))}
                     cx="50%"
                     cy="50%"
-                    innerRadius={55}
-                    outerRadius={90}
+                    innerRadius={isMobile ? 45 : 50}
+                    outerRadius={isMobile ? 75 : 85}
                     paddingAngle={3}
                     dataKey="value"
+                    stroke="none"
                   >
                     {paymentMethods.map((_, index) => (
                       <Cell key={`cell-${index}`} fill={PAYMENT_COLORS[index % PAYMENT_COLORS.length]} />
                     ))}
                   </Pie>
                   <Tooltip
-                    contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px' }}
-                    formatter={(value: number | undefined, _name: string, props: any) => {
-                      if (value === undefined) return [''];
-                      return [
-                        <span key="tooltip">
-                          <strong>{value.toFixed(1)}%</strong><br/>
-                          {formatCurrency(props.payload.amount)}<br/>
-                          {formatNumber(props.payload.count)} txns
-                        </span>
-                      ];
+                    contentStyle={{ 
+                      backgroundColor: '#fff', 
+                      border: '1px solid #B8D9D1', 
+                      borderRadius: '10px',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.08)'
                     }}
+                    formatter={(value: number | undefined, _name: string | undefined, props: any) => [
+                      <span key="tooltip">
+                        <strong>{value?.toFixed(1) || 0}%</strong><br/>
+                        {formatCurrency(props.payload.amount)}<br/>
+                        {formatNumber(props.payload.count)} txns
+                      </span>
+                    ]}
                   />
                 </PieChart>
               </ResponsiveContainer>
-              <div style={{ flex: 1 }}>
+              
+              <div style={{ 
+                flex: 1,
+                display: 'flex',
+                flexDirection: isMobile ? 'row' : 'column',
+                flexWrap: isMobile ? 'wrap' : 'nowrap',
+                justifyContent: isMobile ? 'center' : 'flex-start',
+                gap: '8px'
+              }}>
                 {paymentMethods.map((method, index) => (
-                  <div key={method.paymentMethod} style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px' }}>
-                    <div style={{ width: '14px', height: '14px', borderRadius: '4px', backgroundColor: PAYMENT_COLORS[index % PAYMENT_COLORS.length] }}></div>
-                    <div style={{ flex: 1 }}>
-                      <p style={{ fontSize: '14px', fontWeight: 600, color: '#334155', margin: 0 }}>{method.paymentMethod}</p>
-                      <p style={{ fontSize: '12px', color: '#94a3b8', margin: 0 }}>
-                        {method.percentage.toFixed(1)}% • {formatCurrency(method.totalAmount)}
+                  <div 
+                    key={method.paymentMethod} 
+                    style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: '10px',
+                      padding: '8px 12px',
+                      backgroundColor: '#f8fafc',
+                      borderRadius: '8px',
+                      border: '1px solid #D1E8E3'
+                    }}
+                  >
+                    <div style={{ 
+                      width: '10px', 
+                      height: '10px', 
+                      borderRadius: '3px', 
+                      backgroundColor: PAYMENT_COLORS[index % PAYMENT_COLORS.length], 
+                      flexShrink: 0 
+                    }} />
+                    <div>
+                      <p style={{ fontSize: '13px', fontWeight: 600, color: 'rgba(0, 49, 66, 0.7)', margin: 0 }}>
+                        {method.paymentMethod}
+                      </p>
+                      <p style={{ fontSize: '12px', color: 'rgba(0, 49, 66, 0.6)', margin: 0 }}>
+                        {method.percentage.toFixed(1)}%
                       </p>
                     </div>
                   </div>
@@ -303,150 +1858,403 @@ const AdvancedCharts = () => {
               </div>
             </div>
           ) : (
-            <div style={{ height: '280px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <p style={{ color: '#94a3b8' }}>No payment method data</p>
+            <div style={{ 
+              height: '200px', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              backgroundColor: '#f8fafc',
+              borderRadius: '12px',
+              border: '1px dashed #B8D9D1'
+            }}>
+              <p style={{ color: 'rgba(0, 49, 66, 0.6)', fontSize: '14px' }}>No payment method data</p>
             </div>
           )}
         </div>
 
-        {/* Chart 3: Status Split (Stacked Bar) */}
-        <div style={cardStyle}>
-          <div style={{ marginBottom: '24px' }}>
-            <h3 style={{ fontSize: '18px', fontWeight: 600, color: '#0f172a', margin: 0 }}>Status Split Over Time</h3>
-            <p style={{ fontSize: '14px', color: '#64748b', margin: '4px 0 0 0' }}>Daily breakdown by transaction status</p>
+        {/* Chart 3: Premium Status Split Over Time */}
+        <div style={{
+          ...cardStyle,
+          padding: '24px',
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
+          {/* Premium Header with Interactive Legend */}
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'flex-start',
+            marginBottom: '20px',
+            gap: '16px',
+            flexWrap: 'wrap'
+          }}>
+            {/* Left: Title + Subtitle */}
+            <div style={{ flex: '1 1 auto', minWidth: '180px' }}>
+              <h3 style={{ 
+                fontSize: isMobile ? '17px' : '19px', 
+                fontWeight: 700, 
+                color: '#003142', 
+                margin: 0,
+                letterSpacing: '-0.02em'
+              }}>
+                Status Split Over Time
+              </h3>
+              <p style={{ fontSize: '13px', color: 'rgba(0, 49, 66, 0.6)', margin: '6px 0 0 0', fontWeight: 500 }}>
+                Daily breakdown by status
+              </p>
+            </div>
+            
+            {/* Right: View Mode Toggle + Legend Chips */}
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '10px',
+              alignItems: 'flex-end'
+            }}>
+              {/* View Mode Toggle */}
+              <div style={{
+                display: 'flex',
+                gap: '6px',
+                padding: '4px',
+                backgroundColor: '#f8fafc',
+                borderRadius: '10px',
+                border: '1px solid #D1E8E3'
+              }}>
+                <button
+                  onClick={() => setStatusViewMode('count')}
+                  style={{
+                    padding: '6px 12px',
+                    fontSize: '12px',
+                    fontWeight: statusViewMode === 'count' ? 600 : 500,
+                    color: statusViewMode === 'count' ? '#0f172a' : '#64748b',
+                    backgroundColor: statusViewMode === 'count' ? '#ffffff' : 'transparent',
+                    border: 'none',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    boxShadow: statusViewMode === 'count' ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  Count
+                </button>
+                <button
+                  onClick={() => setStatusViewMode('percentage')}
+                  style={{
+                    padding: '6px 12px',
+                    fontSize: '12px',
+                    fontWeight: statusViewMode === 'percentage' ? 600 : 500,
+                    color: statusViewMode === 'percentage' ? '#0f172a' : '#64748b',
+                backgroundColor: statusViewMode === 'percentage' ? '#ffffff' : 'transparent',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                boxShadow: statusViewMode === 'percentage' ? '0 1px 2px rgba(0, 49, 66, 0.05)' : 'none',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  % Share
+                </button>
+              </div>
+              
+              {/* Interactive Legend Chips */}
+              <div style={{
+                display: 'flex',
+                gap: '8px',
+                flexWrap: 'wrap',
+                justifyContent: 'flex-end'
+              }}>
+                {/* Success Chip */}
+                <button
+                  onClick={() => setShowSuccess(!showSuccess)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '8px 14px',
+                    backgroundColor: '#ffffff',
+                    border: `1px solid ${showSuccess ? STATUS_COLORS.SUCCESS.border : 'rgba(0, 49, 66, 0.1)'}`,
+                    borderRadius: '10px',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    color: showSuccess ? '#003142' : 'rgba(0, 49, 66, 0.6)',
+                    boxShadow: showSuccess ? `0 0 0 2px ${STATUS_COLORS.SUCCESS.light}` : 'none'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!showSuccess) {
+                      e.currentTarget.style.borderColor = 'rgba(0, 49, 66, 0.15)';
+                      e.currentTarget.style.backgroundColor = '#F0F9F7';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!showSuccess) {
+                      e.currentTarget.style.borderColor = 'rgba(0, 49, 66, 0.1)';
+                      e.currentTarget.style.backgroundColor = '#ffffff';
+                    }
+                  }}
+                >
+                  <div style={{ 
+                    width: '8px', 
+                    height: '8px', 
+                    borderRadius: '50%', 
+                    backgroundColor: STATUS_COLORS.SUCCESS.main,
+                    flexShrink: 0,
+                    boxShadow: showSuccess ? `0 0 0 2px ${STATUS_COLORS.SUCCESS.light}` : 'none'
+                  }} />
+                  Success
+                </button>
+                
+                {/* Pending Chip */}
+                <button
+                  onClick={() => setShowPending(!showPending)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '8px 14px',
+                    backgroundColor: '#ffffff',
+                    border: `1px solid ${showPending ? STATUS_COLORS.PENDING.border : 'rgba(0, 49, 66, 0.1)'}`,
+                    borderRadius: '10px',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    color: showPending ? '#003142' : 'rgba(0, 49, 66, 0.6)',
+                    boxShadow: showPending ? `0 0 0 2px ${STATUS_COLORS.PENDING.light}` : 'none'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!showPending) {
+                      e.currentTarget.style.borderColor = 'rgba(0, 49, 66, 0.15)';
+                      e.currentTarget.style.backgroundColor = '#F0F9F7';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!showPending) {
+                      e.currentTarget.style.borderColor = 'rgba(0, 49, 66, 0.1)';
+                      e.currentTarget.style.backgroundColor = '#ffffff';
+                    }
+                  }}
+                >
+                  <div style={{ 
+                    width: '8px', 
+                    height: '8px', 
+                    borderRadius: '50%', 
+                    backgroundColor: STATUS_COLORS.PENDING.main,
+                    flexShrink: 0,
+                    boxShadow: showPending ? `0 0 0 2px ${STATUS_COLORS.PENDING.light}` : 'none'
+                  }} />
+                  Pending
+                </button>
+                
+                {/* Failed Chip */}
+                <button
+                  onClick={() => setShowFailed(!showFailed)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '8px 14px',
+                    backgroundColor: '#ffffff',
+                    border: `1px solid ${showFailed ? STATUS_COLORS.FAILED.border : 'rgba(0, 49, 66, 0.1)'}`,
+                    borderRadius: '10px',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    color: showFailed ? '#003142' : 'rgba(0, 49, 66, 0.6)',
+                    boxShadow: showFailed ? `0 0 0 2px ${STATUS_COLORS.FAILED.light}` : 'none'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!showFailed) {
+                      e.currentTarget.style.borderColor = 'rgba(0, 49, 66, 0.15)';
+                      e.currentTarget.style.backgroundColor = '#F0F9F7';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!showFailed) {
+                      e.currentTarget.style.borderColor = 'rgba(0, 49, 66, 0.1)';
+                      e.currentTarget.style.backgroundColor = '#ffffff';
+                    }
+                  }}
+                >
+                  <div style={{ 
+                    width: '8px', 
+                    height: '8px', 
+                    borderRadius: '50%', 
+                    backgroundColor: STATUS_COLORS.FAILED.main,
+                    flexShrink: 0,
+                    boxShadow: showFailed ? `0 0 0 2px ${STATUS_COLORS.FAILED.light}` : 'none'
+                  }} />
+                  Failed
+                </button>
+              </div>
+            </div>
           </div>
+          
           {stackedStatusData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={280}>
-              <BarChart data={stackedStatusData} barSize={stackedStatusData.length > 20 ? 12 : 20} barCategoryGap="10%">
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+            <ResponsiveContainer width="100%" height={isMobile ? 240 : 280}>
+              <BarChart 
+                data={stackedStatusData} 
+                barSize={stackedStatusData.length > 20 ? (isMobile ? 10 : 12) : (isMobile ? 14 : 18)} 
+                barCategoryGap="12%" 
+                margin={{ left: isMobile ? -15 : 5, right: isMobile ? 5 : 10, top: 20, bottom: 10 }}
+              >
+                <defs>
+                  {/* Track background pattern */}
+                  <pattern id="trackPattern" patternUnits="userSpaceOnUse" width="4" height="4">
+                    <rect width="4" height="4" fill="#E6F4F1"/>
+                  </pattern>
+                </defs>
+                
+                {/* Ultra-light gridlines */}
+                <CartesianGrid 
+                  strokeDasharray="2 4" 
+                  stroke="#D1E8E3" 
+                  vertical={false}
+                  strokeWidth={0.8}
+                  strokeOpacity={0.5}
+                />
+                
+                {/* X-Axis - Reduced labels */}
                 <XAxis
                   dataKey="date"
-                  stroke="#94a3b8"
-                  tick={{ fill: '#64748b', fontSize: 10 }}
+                  stroke="#B8D9D1"
+                  tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 500 }}
                   tickLine={false}
-                  axisLine={false}
-                  tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', { day: 'numeric' })}
-                  interval={stackedStatusData.length > 15 ? Math.floor(stackedStatusData.length / 8) : 0}
+                  axisLine={{ stroke: '#f1f5f9', strokeWidth: 1 }}
+                  tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', { 
+                    month: 'short', 
+                    day: 'numeric' 
+                  })}
+                  interval={stackedStatusData.length > 15 ? Math.floor(stackedStatusData.length / 6) : Math.floor(stackedStatusData.length / 5)}
+                  dy={8}
+                  tickMargin={8}
                 />
+                
+                {/* Y-Axis with label */}
                 <YAxis
-                  stroke="#94a3b8"
-                  tick={{ fill: '#64748b', fontSize: 12 }}
+                  stroke="rgba(0, 49, 66, 0.1)"
+                  tick={{ fill: 'rgba(0, 49, 66, 0.6)', fontSize: 11, fontWeight: 500 }}
                   tickLine={false}
                   axisLine={false}
-                  tickFormatter={formatNumber}
+                  tickFormatter={statusViewMode === 'percentage' ? (v) => `${Math.round(v)}%` : formatNumber}
+                  width={isMobile ? 45 : 55}
+                  tickMargin={8}
+                  domain={statusViewMode === 'percentage' ? [0, 100] : [0, 'auto']}
+                  label={{ 
+                    value: 'Transactions', 
+                    angle: -90, 
+                    position: 'insideLeft',
+                    style: { 
+                      fill: 'rgba(0, 49, 66, 0.6)', 
+                      fontSize: '12px', 
+                      fontWeight: 600,
+                      textAnchor: 'middle'
+                    }
+                  }}
                 />
-                <Tooltip
-                  contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px' }}
-                  formatter={(value: number | undefined, name: string) => value !== undefined ? [formatNumber(value), name] : ['', name]}
-                  labelFormatter={(label) => new Date(label).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                
+                {/* Premium Tooltip */}
+                <Tooltip 
+                  content={<PremiumStatusTooltip />}
+                  cursor={{ 
+                    fill: 'rgba(0, 49, 66, 0.05)',
+                    stroke: 'rgba(0, 49, 66, 0.1)',
+                    strokeWidth: 1
+                  }}
                 />
-                <Legend wrapperStyle={{ paddingTop: '10px' }} />
-                <Bar dataKey="SUCCESS" stackId="status" fill={STATUS_COLORS.SUCCESS} radius={[0, 0, 0, 0]} />
-                <Bar dataKey="PENDING" stackId="status" fill={STATUS_COLORS.PENDING} radius={[0, 0, 0, 0]} />
-                <Bar dataKey="FAILED" stackId="status" fill={STATUS_COLORS.FAILED} radius={[4, 4, 0, 0]} />
+                
+                {/* Stacked Bars with separators */}
+                {showSuccess && (
+                  <Bar 
+                    dataKey="SUCCESS" 
+                    stackId="status" 
+                    fill={STATUS_COLORS.SUCCESS.main}
+                    radius={statusViewMode === 'percentage' ? [0, 0, 8, 8] : [0, 0, 8, 8]}
+                    stroke="#ffffff"
+                    strokeWidth={2}
+                    animationBegin={0}
+                    animationDuration={800}
+                    animationEasing="ease-out"
+                  />
+                )}
+                {showPending && (
+                  <Bar 
+                    dataKey="PENDING" 
+                    stackId="status" 
+                    fill={STATUS_COLORS.PENDING.main}
+                    stroke="#ffffff"
+                    strokeWidth={2}
+                    animationBegin={100}
+                    animationDuration={800}
+                    animationEasing="ease-out"
+                  />
+                )}
+                {showFailed && (
+                  <Bar 
+                    dataKey="FAILED" 
+                    stackId="status" 
+                    fill={STATUS_COLORS.FAILED.main}
+                    radius={statusViewMode === 'percentage' ? [8, 8, 0, 0] : [8, 8, 0, 0]}
+                    stroke="#ffffff"
+                    strokeWidth={2}
+                    animationBegin={200}
+                    animationDuration={800}
+                    animationEasing="ease-out"
+                  />
+                )}
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <div style={{ height: '280px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <p style={{ color: '#94a3b8' }}>No status data available</p>
+            <div style={{ 
+              height: '240px', 
+              display: 'flex', 
+              flexDirection: 'column',
+              alignItems: 'center', 
+              justifyContent: 'center',
+              backgroundColor: '#E6F4F1',
+              borderRadius: '16px',
+              border: '1px dashed #B8D9D1'
+            }}>
+              <div style={{
+                width: '48px',
+                height: '48px',
+                borderRadius: '12px',
+                backgroundColor: '#E6F4F1',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '12px'
+              }}>
+                <svg width="24" height="24" fill="none" stroke="#94a3b8" strokeWidth={1.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
+                </svg>
+              </div>
+              <p style={{ color: 'rgba(0, 49, 66, 0.7)', fontSize: '14px', fontWeight: 600, margin: 0 }}>No status data available</p>
+              <p style={{ color: 'rgba(0, 49, 66, 0.5)', fontSize: '12px', marginTop: '4px' }}>Data will appear when available</p>
             </div>
           )}
         </div>
       </div>
 
-      {/* Chart 4: Hourly Heatmap */}
-      <div style={cardStyle}>
-        <div style={{ marginBottom: '24px' }}>
-          <h3 style={{ fontSize: '18px', fontWeight: 600, color: '#0f172a', margin: 0 }}>Hourly Transaction Heatmap</h3>
-          <p style={{ fontSize: '14px', color: '#64748b', margin: '4px 0 0 0' }}>Transaction volume by hour of day</p>
-        </div>
-        {hourlyData.length > 0 ? (
-          <div>
-            {/* Heatmap Grid */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '24px' }}>
-              {hourlyData.map((hour) => (
-                <div
-                  key={hour.hour}
-                  style={{
-                    width: 'calc(4.166% - 6px)',
-                    minWidth: '50px',
-                    aspectRatio: '1',
-                    backgroundColor: getHeatmapColor(hour.transactionCount),
-                    borderRadius: '8px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    transition: 'transform 0.2s',
-                  }}
-                  title={`${formatHour(hour.hour)}: ${formatNumber(hour.transactionCount)} transactions, ${formatCurrency(hour.totalAmount)}`}
-                >
-                  <span style={{ fontSize: '11px', fontWeight: 600, color: hour.transactionCount > 0 ? '#334155' : '#94a3b8' }}>
-                    {formatHour(hour.hour)}
-                  </span>
-                  <span style={{ fontSize: '13px', fontWeight: 700, color: hour.transactionCount > 0 ? '#0f172a' : '#cbd5e1' }}>
-                    {formatNumber(hour.transactionCount)}
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            {/* Hourly Bar Chart */}
-            <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={hourlyData} barSize={20} barCategoryGap="15%">
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
-                <XAxis
-                  dataKey="hour"
-                  stroke="#94a3b8"
-                  tick={{ fill: '#64748b', fontSize: 11 }}
-                  tickLine={false}
-                  axisLine={false}
-                  tickFormatter={formatHour}
-                  interval={1}
-                />
-                <YAxis
-                  stroke="#94a3b8"
-                  tick={{ fill: '#64748b', fontSize: 12 }}
-                  tickLine={false}
-                  axisLine={false}
-                  tickFormatter={formatNumber}
-                />
-                <Tooltip
-                  contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px' }}
-                  formatter={(value: number | undefined, name: string) => {
-                    if (value === undefined) return ['', name];
-                    if (name === 'transactionCount') return [formatNumber(value), 'Transactions'];
-                    if (name === 'totalAmount') return [formatCurrency(value), 'Volume'];
-                    return [value, name];
-                  }}
-                  labelFormatter={(hour) => formatHour(hour as number)}
-                />
-                <Bar dataKey="transactionCount" fill={COLORS.primary} radius={[4, 4, 0, 0]}>
-                  {hourlyData.map((entry) => (
-                    <Cell key={`cell-${entry.hour}`} fill={getHeatmapColor(entry.transactionCount)} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-
-            {/* Legend */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '24px', marginTop: '16px' }}>
-              <span style={{ fontSize: '12px', color: '#64748b' }}>Low</span>
-              <div style={{ display: 'flex', gap: '4px' }}>
-                {['#f1f5f9', '#e0e7ff', '#c7d2fe', '#a5b4fc', '#818cf8', '#6366f1'].map((color, i) => (
-                  <div key={i} style={{ width: '24px', height: '12px', backgroundColor: color, borderRadius: '2px' }}></div>
-                ))}
-              </div>
-              <span style={{ fontSize: '12px', color: '#64748b' }}>High</span>
-            </div>
-          </div>
-        ) : (
-          <div style={{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <p style={{ color: '#94a3b8' }}>No hourly data available</p>
-          </div>
-        )}
-      </div>
+      {/* Chart 4: Premium Hourly Heatmap - Redesigned 2026 */}
+      <HourlyHeatmapPremium 
+        hourlyData={hourlyData}
+        isMobile={isMobile}
+        formatHour={formatHour}
+        formatNumber={formatNumber}
+        formatCurrency={formatCurrency}
+        cardStyle={cardStyle}
+      />
+      
+      {/* Animation Styles */}
+      <style>{`
+        @keyframes tooltipFadeIn {
+          from { opacity: 0; transform: translateY(4px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
     </div>
   );
 };

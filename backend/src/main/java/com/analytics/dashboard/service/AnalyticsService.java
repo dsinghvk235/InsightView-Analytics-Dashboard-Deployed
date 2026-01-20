@@ -868,12 +868,29 @@ public class AnalyticsService {
     public KPIComparisonResponse getKPIWithComparison(int periodDays) {
         log.debug("Fetching KPI metrics with {} day comparison (OPTIMIZED)", periodDays);
         
-        if (periodDays < 1) periodDays = 30;
-        
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime currentPeriodStart = now.minusDays(periodDays);
-        LocalDateTime previousPeriodStart = now.minusDays(periodDays * 2);
-        LocalDateTime previousPeriodEnd = currentPeriodStart;
+        LocalDateTime currentPeriodStart;
+        LocalDateTime previousPeriodStart;
+        LocalDateTime previousPeriodEnd;
+        boolean isAllTime = (periodDays == 0);
+        
+        if (isAllTime) {
+            // For "All Transactions", use a very old date (10 years back) to get all data
+            currentPeriodStart = LocalDateTime.of(2000, 1, 1, 0, 0);
+            // For comparison, we'll compare first half vs second half of all time
+            // But since we want all data, we'll set previous period to same as current (no comparison)
+            previousPeriodStart = currentPeriodStart;
+            previousPeriodEnd = currentPeriodStart;
+        } else if (periodDays < 1) {
+            periodDays = 30;
+            currentPeriodStart = now.minusDays(periodDays);
+            previousPeriodStart = now.minusDays(periodDays * 2);
+            previousPeriodEnd = currentPeriodStart;
+        } else {
+            currentPeriodStart = now.minusDays(periodDays);
+            previousPeriodStart = now.minusDays(periodDays * 2);
+            previousPeriodEnd = currentPeriodStart;
+        }
         
         // OPTIMIZED: Only 4 database queries total instead of 14+
         // Query 1: All transaction KPIs for current period
@@ -923,8 +940,8 @@ public class AnalyticsService {
         Double failedCountChange = calculatePercentageChange(previousFailedCount, currentFailedCount);
         Double failedVolumeChange = calculatePercentageChange(previousFailedVolume, currentFailedVolume);
         
-        String currentPeriodStr = String.format("Last %d days", periodDays);
-        String previousPeriodStr = String.format("%d-%d days ago", periodDays, periodDays * 2);
+        String currentPeriodStr = isAllTime ? "All Time" : String.format("Last %d days", periodDays);
+        String previousPeriodStr = isAllTime ? "N/A" : String.format("%d-%d days ago", periodDays, periodDays * 2);
         
         return KPIComparisonResponse.builder()
                 .totalUsers(currentTotalUsers)

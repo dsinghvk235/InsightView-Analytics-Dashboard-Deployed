@@ -1,0 +1,305 @@
+## Day 0
+
+You are a senior full-stack engineer.
+
+Scaffold a monorepo for an Analytics Dashboard with:
+- backend (Spring Boot 3, Java 17)
+- frontend (React + Vite)
+- shared root README
+- separate README for backend and frontend
+
+Follow startup-grade best practices.
+
+## Day 1
+
+You are a senior system architect.
+
+I am building an Analytics Dashboard for a payment startup.
+
+Constraints:
+- Spring Boot 3 backend
+- PostgreSQL database
+- React frontend
+- 500k+ transactions, 5000+ users
+- KPI latency <300ms
+- Server-side pagination
+
+Design:
+1. High-level architecture
+2. Data flow
+3. Performance strategy
+Explain simply.
+
+
+## Day 2
+
+You are a senior Java backend engineer.
+
+Generate JPA entities and Flyway migrations for:
+- users(id, full_name, email, role, status, created_at)
+- transactions(id, user_id, amount, currency, type, status, payment_method, created_at)
+
+Requirements:
+- Proper enums
+- Indexes for analytics
+- PostgreSQL compatible
+Explain index choices.
+
+
+## Day 3
+
+You are a senior backend engineer designing realistic large-scale test data
+for a payment analytics system.
+
+Context:
+- Spring Boot 3
+- JPA / Hibernate
+- PostgreSQL
+- Monorepo
+- No raw SQL inserts
+
+Generate a data seeding runner that creates:
+
+USERS:
+- 5,000+ users
+- Activity distribution:
+  - 10% high activity
+  - 70% normal
+  - 15% low
+  - 5% new
+- created_at spread over last 6 months
+
+TRANSACTIONS:
+- 500,000+ transactions
+- Linked to users
+- Spread over last 90 days
+- Distinct timestamps, cycles, dates
+- Weighted randomness:
+  - SUCCESS > FAILED > PENDING
+  - PAYIN, PAYOUT, REFUND
+  - UPI, CARD, WALLET
+- Realistic amount distribution
+
+Constraints:
+- Batch inserts
+- flush/clear
+- Avoid memory issues
+
+Output code + explanation.
+
+
+## Day 4
+
+You are a PostgreSQL performance expert.
+
+Write optimized SQL queries for:
+1. Total Users
+2. Total Transactions
+3. New Users Today
+4. Pending Transactions
+5. Total GTV (SUCCESS)
+6. Success Rate
+7. Average Ticket Size
+8. Failed Volume
+
+Dataset: 500k+ rows
+Target: <300ms
+
+Recommend indexes and explain.
+
+
+## Day 5
+
+You are a senior Spring Boot engineer.
+
+Design REST APIs for:
+- KPI summary
+- Daily analytics (7/30 days)
+- Paginated transaction table
+
+Requirements:
+- Pageable pagination
+- Filters: email, status, amount range
+- DTO-based responses
+- Clean layering
+
+Provide example responses.
+
+
+## Day 6
+
+You are a senior frontend engineer and product designer.
+
+Build a React (Vite) analytics dashboard UI.
+
+Visual reference:
+https://dribbble.com/shots/25192630-Finance-Dashboard-Components
+
+Use it only for layout & spacing.
+
+Tech:
+- React
+- Tailwind CSS
+- Recharts
+
+Pages:
+- KPI cards
+- Charts
+- Paginated transaction table
+
+Focus on clarity and SaaS look.
+
+
+## Day 7
+
+You are a data visualization expert.
+
+Implement Recharts for:
+1. Daily Volume vs GTV (bar + line)
+2. Payment Method Split (donut)
+3. Status Split (stacked bar)
+4. Hourly Heatmap
+
+Explain how backend data plugs in.
+
+
+## Day 8
+
+You are a backend performance engineer.
+
+Explain how this system achieves:
+- <300ms KPI responses
+- Fast pagination at scale
+
+Cover:
+- Indexing
+- Aggregation
+- Pagination strategy
+- Tradeoffs
+
+
+## Day 9
+
+You are a senior engineer preparing a project walkthrough.
+
+Create:
+- README structure
+- Architecture explanation
+- Key decisions
+- Scaling discussion
+- Known limitations
+
+
+Does this schedule and prompts sufficient for this project ? Will it make my project end-to-end ready with fully functional and ready to use ?
+
+
+
+
+
+Now moving with Day 2 of this project. Day 2 will have 6 parts.
+Part - 2A : Domain Modeling (JPA Entities)
+Part - 2B : Flyway Migrations (Schema + Indexes)
+Part - 2C : Seed / Test Data Migration
+Part - 2D : Repository Layer (Read-Optimized)
+Part - 2E : Analytics Service Layer
+Part - 2F : Read-Only Analytics APIs + Logging
+
+I'll guide you on each part. Don't pre-assume anything. Just let me know to proceed with Part - 2A.
+
+
+Part - 2A :-
+You are a senior Java backend engineer.
+
+Generate clean, production-ready JPA entities for:
+- User(id, fullName, email, role, status, createdAt)
+- Transaction(id, user, amount, currency, type, status, paymentMethod, createdAt)
+
+Requirements:
+- Java 17
+- Spring Data JPA
+- Proper enum types
+- Auditing-friendly timestamps
+- Meaningful field names and annotations
+- No database-specific annotations yet
+
+Explain key design decisions briefly.
+
+Part - 2B :-
+You are a senior Java backend engineer.
+
+Create Flyway SQL migrations for PostgreSQL based on the existing JPA entities:
+- users
+- transactions
+
+Requirements:
+- Primary and foreign keys
+- Enum columns mapped correctly
+- Analytics-friendly indexes:
+  - time-based queries
+  - filtering by status/type
+  - joins between users and transactions
+- Use Flyway naming conventions
+- Explain why each index exists
+
+
+Part - 2C :-
+You are a senior Java backend engineer.
+
+Create a Flyway seed migration for PostgreSQL that:
+- Inserts at least 10 users
+- Inserts at least 100 transactions
+- Uses varied:
+  - dates (last 30 days)
+  - statuses
+  - transaction types
+  - payment methods
+- Respects foreign key constraints
+
+Ensure data is realistic for analytics testing.
+
+
+Part - 2D :-
+You are a senior Java backend engineer.
+
+Create Spring Data JPA repositories for User and Transaction with:
+- Read-only, analytics-focused queries
+- Examples:
+  - total transaction amount by date range
+  - count of transactions by status
+  - total amount by payment method
+- Use projections where appropriate
+- Prefer performance over generic CRUD
+
+Explain query choices briefly.
+
+
+Part - 2E :-
+You are a senior Java backend engineer.
+
+Create a service layer that:
+- Calls analytics repositories
+- Aggregates and formats data for dashboards
+- Handles empty datasets gracefully
+- Is read-only and stateless
+
+Do NOT include controller or HTTP logic.
+
+
+Part - 2F :-
+You are a senior Java backend engineer.
+
+Create REST controllers for analytics:
+- GET /api/analytics/overview
+- GET /api/analytics/transactions/by-date
+- GET /api/analytics/transactions/by-status
+
+Requirements:
+- Read-only APIs
+- Clear request/response models
+- Proper logging of:
+  - incoming requests
+  - query execution
+- Graceful handling of empty results
+
+Explain how to verify API correctness without any UI.
+

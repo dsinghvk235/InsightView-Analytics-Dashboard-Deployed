@@ -406,7 +406,7 @@ const Charts = ({ periodDays, showDatePicker = true, dateRange: externalDateRang
   // Only initialize date range if no external date range is provided
   useEffect(() => {
     if (externalDateRange) return; // Skip if using external date range
-    
+
     const formatDate = (date: Date) => date.toISOString().split('T')[0];
     const endDate = new Date();
     let startDate: Date;
@@ -518,7 +518,7 @@ const Charts = ({ periodDays, showDatePicker = true, dateRange: externalDateRang
             <div>
               <div className="skeleton" style={{ height: '22px', width: '180px', borderRadius: '6px', marginBottom: '10px' }} />
               <div className="skeleton" style={{ height: '14px', width: '140px', borderRadius: '4px' }} />
-            </div>
+        </div>
             <div style={{ display: 'flex', gap: '10px' }}>
               <div className="skeleton" style={{ height: '36px', width: '110px', borderRadius: '10px' }} />
               <div className="skeleton" style={{ height: '36px', width: '90px', borderRadius: '10px' }} />
@@ -538,7 +538,7 @@ const Charts = ({ periodDays, showDatePicker = true, dateRange: externalDateRang
     );
   }
 
-  return (
+    return (
     <div>
       {/* Tooltip Animation Style */}
       <style>{`
@@ -579,9 +579,9 @@ const Charts = ({ periodDays, showDatePicker = true, dateRange: externalDateRang
               gap: '12px',
               flex: isMobile ? 1 : 'none'
             }}>
-              <input
-                type="date"
-                value={dateRange.startDate}
+          <input
+            type="date"
+            value={dateRange.startDate}
                 onChange={(e) => handleDateRangeChange({ ...dateRange, startDate: e.target.value })}
                 style={{
                   padding: '10px 14px',
@@ -597,9 +597,9 @@ const Charts = ({ periodDays, showDatePicker = true, dateRange: externalDateRang
                 }}
               />
               <span style={{ color: 'rgba(0, 49, 66, 0.5)', fontSize: '14px', flexShrink: 0 }}>to</span>
-              <input
-                type="date"
-                value={dateRange.endDate}
+          <input
+            type="date"
+            value={dateRange.endDate}
                 onChange={(e) => handleDateRangeChange({ ...dateRange, endDate: e.target.value })}
                 style={{
                   padding: '10px 14px',
@@ -613,9 +613,9 @@ const Charts = ({ periodDays, showDatePicker = true, dateRange: externalDateRang
                   color: 'var(--text-secondary)',
                   transition: 'all 0.15s ease'
                 }}
-              />
-            </div>
-          </div>
+          />
+        </div>
+      </div>
         </div>
       )}
 
@@ -701,7 +701,7 @@ const Charts = ({ periodDays, showDatePicker = true, dateRange: externalDateRang
                 backgroundColor: CHART_COLORS.primary 
               }} />
               <span style={{ fontSize: '13px', color: 'var(--text-tertiary)', fontWeight: 600 }}>Revenue</span>
-            </div>
+        </div>
 
             {/* Average Line Toggle */}
             <button
@@ -831,8 +831,8 @@ const Charts = ({ periodDays, showDatePicker = true, dateRange: externalDateRang
                 />
 
                 {/* X-Axis */}
-                <XAxis
-                  dataKey="date"
+            <XAxis
+              dataKey="date"
                   stroke="var(--border-default)"
                   tick={{ 
                     fill: 'var(--text-muted)', 
@@ -854,7 +854,7 @@ const Charts = ({ periodDays, showDatePicker = true, dateRange: externalDateRang
                 />
 
                 {/* Y-Axis */}
-                <YAxis
+            <YAxis
                   stroke="var(--border-default)"
                   tick={{ 
                     fill: 'var(--text-muted)', 
@@ -914,7 +914,7 @@ const Charts = ({ periodDays, showDatePicker = true, dateRange: externalDateRang
                 )}
 
                 {/* Custom Tooltip */}
-                <Tooltip 
+            <Tooltip
                   content={
                     <PremiumRevenueTooltip 
                       revenueData={revenueData} 
@@ -926,20 +926,20 @@ const Charts = ({ periodDays, showDatePicker = true, dateRange: externalDateRang
 
                 {/* Area + Line */}
                 <Area
-                  type="monotone"
-                  dataKey="revenue"
+              type="monotone"
+              dataKey="revenue"
                   stroke={CHART_COLORS.primary}
                   strokeWidth={2.5}
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   fill="url(#premiumRevenueGradient)"
-                  name="Revenue"
+              name="Revenue"
                   dot={false}
                   activeDot={<CustomActiveDot />}
                   style={{ filter: 'url(#lineGlow)' }}
-                />
+            />
               </AreaChart>
-            </ResponsiveContainer>
+        </ResponsiveContainer>
           </div>
         ) : (
           <div style={{ 
@@ -1016,7 +1016,7 @@ const Charts = ({ periodDays, showDatePicker = true, dateRange: externalDateRang
                 justifyContent: 'center'
               }}>
                 <ResponsiveContainer width="100%" height={isMobile ? 220 : 260}>
-                  <PieChart>
+            <PieChart>
                     <defs>
                       {/* Subtle drop shadow for the donut */}
                       <filter id="donutShadow" x="-20%" y="-20%" width="140%" height="140%">
@@ -1035,8 +1035,8 @@ const Charts = ({ periodDays, showDatePicker = true, dateRange: externalDateRang
                     </defs>
                     <Pie
                       data={paymentMethods.map(m => ({ name: m.paymentMethod, value: m.percentage }))}
-                      cx="50%"
-                      cy="50%"
+                cx="50%"
+                cy="50%"
                       innerRadius={isMobile ? 58 : 70}
                       outerRadius={isMobile ? 80 : 92}
                       paddingAngle={4}
@@ -1071,8 +1071,8 @@ const Charts = ({ periodDays, showDatePicker = true, dateRange: externalDateRang
                       })}
                     </Pie>
                     <Tooltip content={<PremiumPaymentTooltip />} />
-                  </PieChart>
-                </ResponsiveContainer>
+            </PieChart>
+          </ResponsiveContainer>
                 
                 {/* Center Label - Positioned absolutely over the donut */}
                 <div style={{

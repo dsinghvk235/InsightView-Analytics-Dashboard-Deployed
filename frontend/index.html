@@ -2,10 +2,33 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+
+    <!-- Primary Favicon (Circular by Design) -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/circular_logo.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/circular_logo.png" />
+
+    <!-- Apple Touch Icon -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/circular_logo.png" />
+
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#0F172A" />
+
+    <!-- Meta -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Analytics Dashboard</title>
+    <meta
+      name="description"
+      content="InsightView Analytics Platform - Real-time transaction analytics and insights"
+    />
+    <meta name="application-name" content="InsightView" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="InsightView" />
+
+    <!-- Title -->
+    <title>InsightView | Analytics Platform</title>
   </head>
+
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>

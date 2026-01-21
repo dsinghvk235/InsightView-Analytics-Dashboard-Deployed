@@ -1,4 +1,17 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import {
+  ChevronsLeft,
+  ChevronsRight,
+  X,
+  Menu,
+  Search,
+  Clock,
+  Download,
+  ChevronDown,
+  AlertTriangle,
+  Sparkles,
+  ChevronsUpDown
+} from 'lucide-react';
 import KPICards from './KPICards';
 import Charts from './Charts';
 import AdvancedCharts from './AdvancedCharts';
@@ -394,24 +407,46 @@ const Dashboard = () => {
           minHeight: '72px'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            {/* Circular Logo */}
             <div style={{
-              width: '38px',
-              height: '38px',
-              background: 'linear-gradient(135deg, #003142 0%, #7FB3C8 100%)',
-              borderRadius: '10px',
+              width: isSidebarCollapsed ? '40px' : '44px',
+              height: isSidebarCollapsed ? '40px' : '44px',
+              borderRadius: '50%',
+              backgroundColor: 'var(--surface-raised)',
+              border: '2px solid var(--border-default)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              overflow: 'hidden',
+              boxShadow: '0 2px 12px rgba(0,0,0,0.12)',
               flexShrink: 0,
-              boxShadow: '0 4px 12px rgba(0, 49, 66, 0.15)'
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
             }}>
-              <svg width="20" height="20" fill="none" stroke="white" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
-              </svg>
+              <img 
+                src="/InsightView.png" 
+                alt="InsightView Logo" 
+                style={{ 
+                  width: '100%', 
+                  height: '100%', 
+                  objectFit: 'cover' 
+                }}
+                onError={(e) => {
+                  // Fallback to IV text if image fails to load
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                  const parent = target.parentElement;
+                  if (parent && !parent.querySelector('span')) {
+                    const fallback = document.createElement('span');
+                    fallback.textContent = 'IV';
+                    fallback.style.cssText = 'fontSize: 16px; fontWeight: 700; color: var(--text-primary); letterSpacing: -0.02em';
+                    parent.appendChild(fallback);
+                  }
+                }}
+              />
             </div>
             {!isSidebarCollapsed && (
               <div>
-                <h1 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', margin: 0, letterSpacing: '-0.02em' }}>FinanceHub</h1>
+                <h1 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', margin: 0, letterSpacing: '-0.02em' }}>InsightView</h1>
                 <p style={{ fontSize: '11px', color: 'var(--text-tertiary)', margin: 0, fontWeight: 500, letterSpacing: '0.02em' }}>Analytics Platform</p>
               </div>
             )}
@@ -441,9 +476,7 @@ const Dashboard = () => {
                 e.currentTarget.style.color = 'var(--text-muted)';
               }}
             >
-              <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M18.75 19.5l-7.5-7.5 7.5-7.5m-6 15L5.25 12l7.5-7.5" />
-              </svg>
+              <ChevronsLeft size={18} strokeWidth={1.5} />
             </button>
           )}
           {/* Mobile Close */}
@@ -460,9 +493,7 @@ const Dashboard = () => {
                 display: 'flex'
               }}
             >
-              <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              <X size={20} strokeWidth={2} />
             </button>
           )}
         </div>
@@ -491,9 +522,7 @@ const Dashboard = () => {
               e.currentTarget.style.color = 'var(--text-muted)';
             }}
           >
-            <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 4.5l7.5 7.5-7.5 7.5m-6-15l7.5 7.5-7.5 7.5" />
-            </svg>
+            <ChevronsRight size={18} strokeWidth={1.5} />
           </button>
         )}
 
@@ -629,17 +658,33 @@ const Dashboard = () => {
             <div style={{
               width: '36px',
               height: '36px',
-              borderRadius: '10px',
-              background: 'linear-gradient(135deg, #003142 0%, #7FB3C8 100%)',
+              borderRadius: '50%',
+              backgroundColor: 'var(--surface-raised)',
+              border: '2px solid var(--border-default)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: 'white',
-              fontWeight: 600,
-              fontSize: '13px',
-              flexShrink: 0
+              flexShrink: 0,
+              overflow: 'hidden',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
             }}>
-              AD
+              <img 
+                src="/avatar.png" 
+                alt="Profile" 
+                style={{ 
+                  width: '100%', 
+                  height: '100%', 
+                  objectFit: 'cover' 
+                }}
+                onError={(e) => {
+                  // Fallback to User icon if image fails to load
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                  const fallback = document.createElement('div');
+                  fallback.innerHTML = '<svg width="18" height="18" stroke="currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>';
+                  target.parentElement?.appendChild(fallback);
+                }}
+              />
             </div>
             {!isSidebarCollapsed && (
               <>
@@ -647,9 +692,7 @@ const Dashboard = () => {
                   <p style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Admin User</p>
                   <p style={{ fontSize: '12px', color: 'var(--text-tertiary)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>admin@finance.com</p>
                 </div>
-                <svg width="16" height="16" fill="none" stroke="var(--text-muted)" strokeWidth={1.5} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 15L12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9" />
-                </svg>
+                <ChevronsUpDown size={16} strokeWidth={1.5} style={{ color: 'var(--text-muted)' }} />
               </>
             )}
           </div>
@@ -706,9 +749,7 @@ const Dashboard = () => {
                       flexShrink: 0
                     }}
                   >
-                    <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-                    </svg>
+                    <Menu size={22} strokeWidth={1.5} />
                   </button>
                 )}
                 <div style={{ minWidth: 0 }}>
@@ -733,7 +774,7 @@ const Dashboard = () => {
                 {/* Search */}
                 {!isMobile && (
                   <div style={{ position: 'relative' }}>
-                    <svg style={{ 
+                    <Search style={{ 
                       position: 'absolute', 
                       left: '12px', 
                       top: '50%', 
@@ -743,9 +784,7 @@ const Dashboard = () => {
                       color: isSearchFocused ? 'var(--accent-blue)' : 'var(--text-muted)',
                       transition: 'color 0.15s ease',
                       pointerEvents: 'none'
-                    }} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-                    </svg>
+                    }} strokeWidth={1.5} />
                     <input
                       type="text"
                       placeholder="Search insights... (e.g., revenue, failed)"
@@ -795,9 +834,7 @@ const Dashboard = () => {
                           padding: 0
                         }}
                       >
-                        <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
+                        <X size={12} strokeWidth={2} />
                       </button>
                     )}
                     {/* Search hint tooltip */}
@@ -832,9 +869,7 @@ const Dashboard = () => {
                             alignItems: 'center',
                             gap: '4px'
                           }}>
-                            <svg width="10" height="10" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
+                            <Clock size={10} strokeWidth={2} />
                             {getPeriodLabel()}
                           </span>
                         </div>
@@ -884,28 +919,48 @@ const Dashboard = () => {
                   style={{
                     width: '38px',
                     height: '38px',
-                    borderRadius: '10px',
-                    background: 'linear-gradient(135deg, #003142 0%, #7FB3C8 100%)',
+                    borderRadius: '50%',
+                    backgroundColor: 'var(--surface-raised)',
+                    border: '2px solid var(--border-default)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    color: 'white',
-                    fontWeight: 600,
-                    fontSize: '13px',
                     cursor: 'pointer',
-                    boxShadow: '0 2px 8px rgba(0, 49, 66, 0.15)',
-                    transition: 'transform 0.15s ease, box-shadow 0.15s ease'
+                    overflow: 'hidden',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                    transition: 'transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease'
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.transform = 'scale(1.05)';
-                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 49, 66, 0.2)';
+                    e.currentTarget.style.borderColor = 'var(--border-strong)';
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.transform = 'scale(1)';
-                    e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 49, 66, 0.15)';
+                    e.currentTarget.style.borderColor = 'var(--border-default)';
+                    e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
                   }}
                 >
-                  AD
+                  <img 
+                    src="/avatar.png" 
+                    alt="Profile" 
+                    style={{ 
+                      width: '100%', 
+                      height: '100%', 
+                      objectFit: 'cover' 
+                    }}
+                    onError={(e) => {
+                      // Fallback to User icon if image fails to load
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                      const parent = target.parentElement;
+                      if (parent && !parent.querySelector('svg')) {
+                        const fallback = document.createElement('div');
+                        fallback.innerHTML = '<svg width="18" height="18" stroke="currentColor" fill="none" viewBox="0 0 24 24" style="color: var(--text-secondary)"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>';
+                        parent.appendChild(fallback);
+                      }
+                    }}
+                  />
                 </div>
               </div>
             </div>
@@ -913,7 +968,7 @@ const Dashboard = () => {
             {/* Mobile Search */}
             {isMobile && (
               <div style={{ marginTop: '12px', position: 'relative' }}>
-                <svg style={{ 
+                <Search style={{ 
                   position: 'absolute', 
                   left: '12px', 
                   top: '50%', 
@@ -922,9 +977,7 @@ const Dashboard = () => {
                   height: '16px', 
                   color: 'var(--text-muted)',
                   pointerEvents: 'none'
-                }} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-                </svg>
+                }} strokeWidth={1.5} />
                 <input
                   type="text"
                   placeholder="Search insights..."
@@ -969,9 +1022,7 @@ const Dashboard = () => {
                       padding: 0
                     }}
                   >
-                    <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
+                    <X size={12} strokeWidth={2} />
                   </button>
                 )}
               </div>
@@ -1099,15 +1150,11 @@ const Dashboard = () => {
                           <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeLinecap="round" />
                         </svg>
                       ) : (
-                        <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                        </svg>
+                        <Download size={16} strokeWidth={1.5} />
                       )}
                       {!isMobile && (exportLoading ? 'Exporting...' : 'Export')}
                       {!exportLoading && !isMobile && (
-                        <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" style={{ marginLeft: '2px' }}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                        </svg>
+                        <ChevronDown size={12} strokeWidth={2} style={{ marginLeft: '2px' }} />
                       )}
                     </button>
 
@@ -1149,9 +1196,7 @@ const Dashboard = () => {
                               color: 'var(--text-muted)'
                             }}
                           >
-                            <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                            </svg>
+                            <X size={14} strokeWidth={2} />
                           </button>
                         )}
                         
@@ -1236,9 +1281,7 @@ const Dashboard = () => {
                           alignItems: 'center',
                           gap: '8px'
                         }}>
-                          <svg width="14" height="14" fill="none" stroke="var(--text-muted)" strokeWidth={1.5} viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
+                          <Clock size={14} strokeWidth={1.5} style={{ color: 'var(--text-muted)' }} />
                           <span style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>
                             Period: <strong style={{ color: 'var(--text-secondary)' }}>{getPeriodLabel()}</strong>
                           </span>
@@ -1256,9 +1299,7 @@ const Dashboard = () => {
                             alignItems: 'center',
                             gap: '8px'
                           }}>
-                            <svg width="14" height="14" fill="none" stroke="var(--error)" strokeWidth={2} viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                            </svg>
+                            <AlertTriangle size={14} strokeWidth={2} style={{ color: 'var(--error)' }} />
                             <span style={{ fontSize: '12px', color: 'var(--error)' }}>{exportError}</span>
                           </div>
                         )}
@@ -1295,9 +1336,7 @@ const Dashboard = () => {
                             </>
                           ) : (
                             <>
-                              <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                              </svg>
+                              <Download size={14} strokeWidth={2} />
                               Download {selectedExportFormat}
                             </>
                           )}
@@ -1349,9 +1388,7 @@ const Dashboard = () => {
                       e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 49, 66, 0.15)';
                     }}
                   >
-                    <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z" />
-                    </svg>
+                    <Sparkles size={16} strokeWidth={1.5} />
                     {!isMobile && 'AI Insights'}
                   </button>
                 </div>

@@ -19,6 +19,7 @@ import {
   PaymentMethod, 
   HourlyTransaction 
 } from '../services/api';
+import { useTheme } from '../contexts/ThemeContext';
 
 // Premium color palette
 const COLORS = {
@@ -36,47 +37,89 @@ const COLORS = {
 const PAYMENT_COLORS = ['#7FB3C8', '#6BA3B8', '#9FC4BB', '#d97706', '#7FB3C8', '#7FB3C8'];
 
 // ==================== PREMIUM HEATMAP COLOR SYSTEM ====================
-// Modern continuous gradient from light mint to accent blue
-const HEATMAP_COLOR_SCALE = {
-  // 10-step continuous scale for smoother transitions
-  colors: [
-    '#E6F4F1', // 0 - Empty/No data (light mint)
-    '#D1E8E3', // 1 - Very low
-    '#B8D9D1', // 2 - Low
-    '#9FC4BB', // 3 - Low-medium
-    '#8BB5AD', // 4 - Medium-low
-    '#7FB3C8', // 5 - Medium (accent blue)
-    '#6BA3B8', // 6 - Medium-high
-    '#5A93A8', // 7 - High
-    '#4A8398', // 8 - Very high
-    '#003142', // 9 - Peak (primary dark)
-  ],
-  // Text colors for each intensity level (accessibility)
-  textColors: [
-    'rgba(0, 49, 66, 0.5)', // 0
-    'rgba(0, 49, 66, 0.6)', // 1
-    'rgba(0, 49, 66, 0.7)', // 2
-    'rgba(0, 49, 66, 0.8)', // 3
-    '#003142', // 4
-    '#003142', // 5
-    '#ffffff', // 6
-    '#ffffff', // 7
-    '#ffffff', // 8
-    '#ffffff', // 9
-  ],
-  // Muted text colors for labels
-  labelColors: [
-    'rgba(0, 49, 66, 0.4)', // 0
-    'rgba(0, 49, 66, 0.5)', // 1
-    'rgba(0, 49, 66, 0.6)', // 2
-    'rgba(0, 49, 66, 0.7)', // 3
-    '#003142', // 4
-    '#003142', // 5
-    'rgba(255,255,255,0.8)', // 6
-    'rgba(255,255,255,0.75)', // 7
-    'rgba(255,255,255,0.7)', // 8
-    'rgba(255,255,255,0.7)', // 9
-  ]
+// Theme-aware color scales for light and dark modes
+const getHeatmapColorScale = (isDark: boolean) => {
+  if (isDark) {
+    // Dark mode: Gradient from dark navy to lighter accent blue
+    return {
+      colors: [
+        '#001F2A', // 0 - Empty/No data (darkest navy)
+        '#002833', // 1 - Very low
+        '#003142', // 2 - Low
+        '#004052', // 3 - Low-medium
+        '#005162', // 4 - Medium-low
+        '#006172', // 5 - Medium
+        '#5A93A8', // 6 - Medium-high
+        '#6BA3B8', // 7 - High
+        '#7FB3C8', // 8 - Very high (accent blue)
+        '#9FC4BB', // 9 - Peak (lighter accent)
+      ],
+      textColors: [
+        'rgba(240, 249, 247, 0.4)', // 0
+        'rgba(240, 249, 247, 0.5)', // 1
+        'rgba(240, 249, 247, 0.6)', // 2
+        'rgba(240, 249, 247, 0.7)', // 3
+        'rgba(240, 249, 247, 0.8)', // 4
+        '#F0F9F7', // 5
+        '#003142', // 6
+        '#003142', // 7
+        '#003142', // 8
+        '#003142', // 9
+      ],
+      labelColors: [
+        'rgba(240, 249, 247, 0.35)', // 0
+        'rgba(240, 249, 247, 0.45)', // 1
+        'rgba(240, 249, 247, 0.55)', // 2
+        'rgba(240, 249, 247, 0.65)', // 3
+        'rgba(240, 249, 247, 0.75)', // 4
+        '#F0F9F7', // 5
+        '#003142', // 6
+        '#003142', // 7
+        '#003142', // 8
+        '#003142', // 9
+      ]
+    };
+  } else {
+    // Light mode: Gradient from light mint to dark navy
+    return {
+      colors: [
+        '#E6F4F1', // 0 - Empty/No data (light mint)
+        '#D1E8E3', // 1 - Very low
+        '#B8D9D1', // 2 - Low
+        '#9FC4BB', // 3 - Low-medium
+        '#8BB5AD', // 4 - Medium-low
+        '#7FB3C8', // 5 - Medium (accent blue)
+        '#6BA3B8', // 6 - Medium-high
+        '#5A93A8', // 7 - High
+        '#4A8398', // 8 - Very high
+        '#003142', // 9 - Peak (primary dark)
+      ],
+      textColors: [
+        'rgba(0, 49, 66, 0.5)', // 0
+        'rgba(0, 49, 66, 0.6)', // 1
+        'rgba(0, 49, 66, 0.7)', // 2
+        'rgba(0, 49, 66, 0.8)', // 3
+        '#003142', // 4
+        '#003142', // 5
+        '#ffffff', // 6
+        '#ffffff', // 7
+        '#ffffff', // 8
+        '#ffffff', // 9
+      ],
+      labelColors: [
+        'rgba(0, 49, 66, 0.4)', // 0
+        'rgba(0, 49, 66, 0.5)', // 1
+        'rgba(0, 49, 66, 0.6)', // 2
+        'rgba(0, 49, 66, 0.7)', // 3
+        '#003142', // 4
+        '#003142', // 5
+        'rgba(255,255,255,0.8)', // 6
+        'rgba(255,255,255,0.75)', // 7
+        'rgba(255,255,255,0.7)', // 8
+        'rgba(255,255,255,0.7)', // 9
+      ]
+    };
+  }
 };
 
 // Premium Heatmap Component with all enhanced features
@@ -97,6 +140,10 @@ const HourlyHeatmapPremium: React.FC<HourlyHeatmapPremiumProps> = ({
   formatCurrency,
   cardStyle
 }) => {
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === 'dark';
+  const HEATMAP_COLOR_SCALE = getHeatmapColorScale(isDark);
+  
   const [hoveredHour, setHoveredHour] = useState<number | null>(null);
   const [tooltipData, setTooltipData] = useState<{
     hour: number;
@@ -215,13 +262,14 @@ const HourlyHeatmapPremium: React.FC<HourlyHeatmapPremiumProps> = ({
         }}
       >
         <div style={{
-          backgroundColor: 'rgba(255, 255, 255, 0.98)',
+          backgroundColor: 'var(--surface-overlay)',
+          opacity: 0.98,
           backdropFilter: 'blur(16px)',
           WebkitBackdropFilter: 'blur(16px)',
-          border: '1px solid rgba(226, 232, 240, 0.9)',
+          border: '1px solid var(--border-default)',
           borderRadius: '14px',
           padding: '16px 20px',
-          boxShadow: '0 12px 40px -8px rgba(0, 0, 0, 0.15), 0 4px 16px -4px rgba(0, 0, 0, 0.1)',
+          boxShadow: 'var(--shadow-dropdown)',
           minWidth: '200px'
         }}>
           {/* Hour Range Header */}
@@ -231,7 +279,7 @@ const HourlyHeatmapPremium: React.FC<HourlyHeatmapPremiumProps> = ({
             gap: '8px',
             marginBottom: '12px',
             paddingBottom: '10px',
-            borderBottom: '1px solid #f1f5f9'
+            borderBottom: '1px solid var(--border-subtle)'
           }}>
             <div style={{
               width: '8px',
@@ -243,7 +291,7 @@ const HourlyHeatmapPremium: React.FC<HourlyHeatmapPremiumProps> = ({
             <span style={{
               fontSize: '13px',
               fontWeight: 600,
-              color: '#003142',
+              color: 'var(--text-primary)',
               letterSpacing: '-0.01em'
             }}>
               {formatHour(hoveredHour)} – {formatHour(nextHour)}
@@ -253,7 +301,7 @@ const HourlyHeatmapPremium: React.FC<HourlyHeatmapPremiumProps> = ({
                 fontSize: '10px',
                 fontWeight: 700,
                 color: '#7FB3C8',
-                backgroundColor: '#E6F4F1',
+                backgroundColor: 'var(--bg-page)',
                 padding: '2px 6px',
                 borderRadius: '4px',
                 letterSpacing: '0.02em'
@@ -268,7 +316,7 @@ const HourlyHeatmapPremium: React.FC<HourlyHeatmapPremiumProps> = ({
             <div style={{
               fontSize: '11px',
               fontWeight: 500,
-              color: 'rgba(0, 49, 66, 0.6)',
+              color: 'var(--text-tertiary)',
               marginBottom: '4px',
               textTransform: 'uppercase',
               letterSpacing: '0.04em'
@@ -278,7 +326,7 @@ const HourlyHeatmapPremium: React.FC<HourlyHeatmapPremiumProps> = ({
             <div style={{
               fontSize: '28px',
               fontWeight: 700,
-              color: '#003142',
+              color: 'var(--text-primary)',
               letterSpacing: '-0.02em',
               fontVariantNumeric: 'tabular-nums',
               lineHeight: 1.1
@@ -298,7 +346,7 @@ const HourlyHeatmapPremium: React.FC<HourlyHeatmapPremiumProps> = ({
               <div style={{
                 fontSize: '10px',
                 fontWeight: 500,
-                color: 'rgba(0, 49, 66, 0.5)',
+                color: 'var(--text-muted)',
                 marginBottom: '2px',
                 textTransform: 'uppercase',
                 letterSpacing: '0.04em'
@@ -308,7 +356,7 @@ const HourlyHeatmapPremium: React.FC<HourlyHeatmapPremiumProps> = ({
               <div style={{
                 fontSize: '14px',
                 fontWeight: 600,
-                color: percentile >= 75 ? '#7FB3C8' : 'rgba(0, 49, 66, 0.7)'
+                color: percentile >= 75 ? '#7FB3C8' : 'var(--text-secondary)'
               }}>
                 Top {100 - percentile}%
               </div>
@@ -319,7 +367,7 @@ const HourlyHeatmapPremium: React.FC<HourlyHeatmapPremiumProps> = ({
               <div style={{
                 fontSize: '10px',
                 fontWeight: 500,
-                color: 'rgba(0, 49, 66, 0.5)',
+                color: 'var(--text-muted)',
                 marginBottom: '2px',
                 textTransform: 'uppercase',
                 letterSpacing: '0.04em'
@@ -332,7 +380,7 @@ const HourlyHeatmapPremium: React.FC<HourlyHeatmapPremiumProps> = ({
                 gap: '4px',
                 fontSize: '14px',
                 fontWeight: 600,
-                color: deltaVsAvg >= 0 ? '#059669' : '#dc2626'
+                color: deltaVsAvg >= 0 ? 'var(--success)' : 'var(--error)'
               }}>
                 <svg 
                   width="12" 
@@ -353,7 +401,7 @@ const HourlyHeatmapPremium: React.FC<HourlyHeatmapPremiumProps> = ({
           {/* Amount */}
           <div style={{
             paddingTop: '10px',
-            borderTop: '1px solid #f1f5f9'
+            borderTop: '1px solid var(--border-subtle)'
           }}>
             <div style={{
               fontSize: '10px',
@@ -368,7 +416,7 @@ const HourlyHeatmapPremium: React.FC<HourlyHeatmapPremiumProps> = ({
             <div style={{
               fontSize: '15px',
               fontWeight: 600,
-              color: 'rgba(0, 49, 66, 0.7)',
+              color: 'var(--text-secondary)',
               fontVariantNumeric: 'tabular-nums'
             }}>
               {formatCurrency(hourData.totalAmount)}
@@ -383,12 +431,13 @@ const HourlyHeatmapPremium: React.FC<HourlyHeatmapPremiumProps> = ({
           left: '50%',
           width: '12px',
           height: '12px',
-          backgroundColor: 'rgba(255, 255, 255, 0.98)',
-          border: '1px solid rgba(226, 232, 240, 0.9)',
+          backgroundColor: 'var(--surface-overlay)',
+          opacity: 0.98,
+          border: '1px solid var(--border-default)',
           borderTop: 'none',
           borderLeft: 'none',
           transform: 'translateX(-50%) rotate(45deg)',
-          boxShadow: '4px 4px 8px -4px rgba(0, 0, 0, 0.1)'
+          boxShadow: 'var(--shadow-sm)'
         }} />
       </div>
     );
@@ -406,13 +455,14 @@ const HourlyHeatmapPremium: React.FC<HourlyHeatmapPremiumProps> = ({
     
     return (
       <div style={{
-        backgroundColor: 'rgba(255, 255, 255, 0.98)',
+        backgroundColor: 'var(--surface-overlay)',
+        opacity: 0.98,
         backdropFilter: 'blur(16px)',
         WebkitBackdropFilter: 'blur(16px)',
-        border: '1px solid rgba(226, 232, 240, 0.9)',
+        border: '1px solid var(--border-default)',
         borderRadius: '14px',
         padding: '14px 18px',
-        boxShadow: '0 12px 40px -8px rgba(0, 0, 0, 0.15), 0 4px 16px -4px rgba(0, 0, 0, 0.1)',
+        boxShadow: 'var(--shadow-dropdown)',
         minWidth: '180px',
         animation: 'tooltipFadeIn 0.15s ease-out'
       }}>
@@ -420,7 +470,7 @@ const HourlyHeatmapPremium: React.FC<HourlyHeatmapPremiumProps> = ({
         <div style={{
           fontSize: '12px',
           fontWeight: 600,
-          color: '#003142',
+          color: 'var(--text-primary)',
           marginBottom: '10px',
           display: 'flex',
           alignItems: 'center',
@@ -439,7 +489,7 @@ const HourlyHeatmapPremium: React.FC<HourlyHeatmapPremiumProps> = ({
         <div style={{
           fontSize: '22px',
           fontWeight: 700,
-          color: '#003142',
+          color: 'var(--text-primary)',
           marginBottom: '8px',
           fontVariantNumeric: 'tabular-nums'
         }}>
@@ -471,7 +521,7 @@ const HourlyHeatmapPremium: React.FC<HourlyHeatmapPremiumProps> = ({
           <h3 style={{ fontSize: isMobile ? '17px' : '19px', fontWeight: 700, color: '#003142', margin: 0, letterSpacing: '-0.02em' }}>
             Hourly Transaction Heatmap
           </h3>
-          <p style={{ fontSize: '13px', color: 'rgba(0, 49, 66, 0.6)', margin: '6px 0 0 0', fontWeight: 500 }}>
+          <p style={{ fontSize: '13px', color: 'var(--text-tertiary)', margin: '6px 0 0 0', fontWeight: 500 }}>
             Transaction volume distribution by hour
           </p>
         </div>
@@ -481,26 +531,26 @@ const HourlyHeatmapPremium: React.FC<HourlyHeatmapPremiumProps> = ({
           flexDirection: 'column',
           alignItems: 'center', 
           justifyContent: 'center',
-          backgroundColor: '#E6F4F1',
+          backgroundColor: 'var(--bg-page)',
           borderRadius: '16px',
-          border: '1px dashed #B8D9D1'
+          border: '1px dashed var(--border-default)'
         }}>
           <div style={{
             width: '56px',
             height: '56px',
             borderRadius: '14px',
-            backgroundColor: '#E6F4F1',
+                backgroundColor: 'var(--bg-subtle)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             marginBottom: '14px'
           }}>
-            <svg width="26" height="26" fill="none" stroke="#94a3b8" strokeWidth={1.5} viewBox="0 0 24 24">
+            <svg width="26" height="26" fill="none" stroke="var(--text-muted)" strokeWidth={1.5} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <p style={{ color: 'rgba(0, 49, 66, 0.7)', fontSize: '15px', fontWeight: 600, margin: 0 }}>No hourly data available</p>
-          <p style={{ color: 'rgba(0, 49, 66, 0.5)', fontSize: '13px', marginTop: '6px' }}>Data will appear when transactions are recorded</p>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '15px', fontWeight: 600, margin: 0 }}>No hourly data available</p>
+          <p style={{ color: 'var(--text-muted)', fontSize: '13px', marginTop: '6px' }}>Data will appear when transactions are recorded</p>
         </div>
       </div>
     );
@@ -527,13 +577,13 @@ const HourlyHeatmapPremium: React.FC<HourlyHeatmapPremiumProps> = ({
           <h3 style={{ 
             fontSize: isMobile ? '17px' : '19px', 
             fontWeight: 700, 
-            color: '#003142', 
+            color: 'var(--text-primary)', 
             margin: 0,
             letterSpacing: '-0.02em'
           }}>
             Hourly Transaction Heatmap
           </h3>
-          <p style={{ fontSize: '13px', color: 'rgba(0, 49, 66, 0.6)', margin: '6px 0 0 0', fontWeight: 500 }}>
+          <p style={{ fontSize: '13px', color: 'var(--text-tertiary)', margin: '6px 0 0 0', fontWeight: 500 }}>
             Transaction volume distribution across 24 hours
           </p>
         </div>
@@ -551,14 +601,14 @@ const HourlyHeatmapPremium: React.FC<HourlyHeatmapPremiumProps> = ({
               alignItems: 'center',
               gap: '8px',
               padding: '8px 14px',
-              backgroundColor: '#E6F4F1',
+                backgroundColor: 'var(--bg-subtle)',
               border: '1px solid #B8D9D1',
               borderRadius: '10px'
             }}>
               <svg width="14" height="14" fill="none" stroke="#7FB3C8" strokeWidth={2} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
               </svg>
-              <span style={{ fontSize: '12px', fontWeight: 600, color: '#003142' }}>
+              <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)' }}>
                 Peak: {formatHour(stats.peakHours[0])}
               </span>
             </div>
@@ -569,12 +619,12 @@ const HourlyHeatmapPremium: React.FC<HourlyHeatmapPremiumProps> = ({
               alignItems: 'center',
               gap: '8px',
               padding: '8px 14px',
-              backgroundColor: '#f8fafc',
-              border: '1px solid #B8D9D1',
+              backgroundColor: 'var(--bg-subtle)',
+              border: '1px solid var(--border-default)',
               borderRadius: '10px'
             }}>
-              <span style={{ fontSize: '12px', fontWeight: 500, color: 'rgba(0, 49, 66, 0.6)' }}>Total:</span>
-              <span style={{ fontSize: '13px', fontWeight: 700, color: '#003142', fontVariantNumeric: 'tabular-nums' }}>
+              <span style={{ fontSize: '12px', fontWeight: 500, color: 'var(--text-tertiary)' }}>Total:</span>
+              <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)', fontVariantNumeric: 'tabular-nums' }}>
                 {formatValueConsistent(stats.totalCount)}
               </span>
             </div>
@@ -612,13 +662,13 @@ const HourlyHeatmapPremium: React.FC<HourlyHeatmapPremiumProps> = ({
                 cursor: 'pointer',
                 padding: isMobile ? '6px' : '8px',
                 border: isHovered 
-                  ? `2px solid ${colorIndex >= 5 ? 'rgba(255,255,255,0.6)' : '#7FB3C8'}` 
-                  : '1px solid rgba(0, 49, 66, 0.04)',
+                  ? `2px solid ${colorIndex >= 5 ? (isDark ? 'rgba(127, 179, 200, 0.8)' : 'rgba(255,255,255,0.6)') : 'var(--accent-blue)'}` 
+                  : `1px solid ${isDark ? 'rgba(127, 179, 200, 0.15)' : 'rgba(0, 49, 66, 0.04)'}`,
                 boxShadow: isHovered 
                   ? `0 8px 24px -4px ${getHeatmapColor(hour.transactionCount)}50, 0 0 0 4px ${getHeatmapColor(hour.transactionCount)}20`
                   : isPeak 
-                    ? `0 0 0 2px #7c3aed30, inset 0 0 0 1px rgba(255,255,255,0.2)`
-                    : '0 1px 2px rgba(0,0,0,0.03)',
+                    ? `0 0 0 2px ${isDark ? 'rgba(127, 179, 200, 0.3)' : '#7c3aed30'}, inset 0 0 0 1px ${isDark ? 'rgba(127, 179, 200, 0.2)' : 'rgba(255,255,255,0.2)'}`
+                    : isDark ? '0 1px 2px rgba(0,0,0,0.2)' : '0 1px 2px rgba(0,0,0,0.03)',
                 transform: isHovered ? 'scale(1.04) translateY(-2px)' : 'scale(1)',
                 transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
                 opacity: isLoaded ? 1 : 0,
@@ -635,8 +685,8 @@ const HourlyHeatmapPremium: React.FC<HourlyHeatmapPremiumProps> = ({
                   width: '6px',
                   height: '6px',
                   borderRadius: '3px',
-                  backgroundColor: '#7FB3C8',
-                  boxShadow: '0 0 6px rgba(127, 179, 200, 0.5)'
+                  backgroundColor: 'var(--accent-blue)',
+                  boxShadow: isDark ? '0 0 6px rgba(127, 179, 200, 0.5)' : '0 0 6px rgba(127, 179, 200, 0.5)'
                 }} />
               )}
               {isLowest && hour.transactionCount > 0 && (
@@ -647,7 +697,7 @@ const HourlyHeatmapPremium: React.FC<HourlyHeatmapPremiumProps> = ({
                   width: '6px',
                   height: '6px',
                   borderRadius: '3px',
-                  backgroundColor: '#94a3b8',
+                  backgroundColor: 'var(--accent-blue)',
                   opacity: 0.6
                 }} />
               )}
@@ -707,30 +757,30 @@ const HourlyHeatmapPremium: React.FC<HourlyHeatmapPremiumProps> = ({
               
               <CartesianGrid 
                 strokeDasharray="2 4" 
-                stroke="#D1E8E3" 
+                stroke="var(--border-subtle)" 
                 vertical={false}
                 strokeWidth={0.8}
               />
               <XAxis
                 dataKey="hour"
-                stroke="#B8D9D1"
-                tick={{ fill: '#64748b', fontSize: 10, fontWeight: 500 }}
+                stroke="var(--border-default)"
+                tick={{ fill: 'var(--text-muted)', fontSize: 10, fontWeight: 500 }}
                 tickLine={false}
-                axisLine={{ stroke: '#f1f5f9', strokeWidth: 1 }}
+                axisLine={{ stroke: 'var(--border-subtle)', strokeWidth: 1 }}
                 tickFormatter={formatHour}
                 interval={1}
                 dy={8}
               />
               <YAxis
-                stroke="#B8D9D1"
-                tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 500 }}
+                stroke="var(--border-default)"
+                tick={{ fill: 'var(--text-muted)', fontSize: 10, fontWeight: 500 }}
                 tickLine={false}
                 axisLine={false}
                 tickFormatter={formatNumber}
                 width={40}
                 tickMargin={8}
               />
-              <Tooltip content={<PremiumBarTooltip />} cursor={{ fill: 'rgba(79, 70, 229, 0.04)', radius: 4 }} />
+              <Tooltip content={<PremiumBarTooltip />} cursor={{ fill: 'rgba(127, 179, 200, 0.08)', radius: 4 }} />
               <Bar 
                 dataKey="transactionCount" 
                 radius={[6, 6, 0, 0]}
@@ -765,15 +815,15 @@ const HourlyHeatmapPremium: React.FC<HourlyHeatmapPremiumProps> = ({
         justifyContent: 'center', 
         gap: isMobile ? '12px' : '16px',
         padding: '14px 20px',
-        backgroundColor: '#E6F4F1',
+                backgroundColor: 'var(--bg-subtle)',
         borderRadius: '12px',
-        border: '1px solid #D1E8E3'
+        border: '1px solid var(--border-subtle)'
       }}>
         {/* Low Label */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', minWidth: '40px' }}>
-          <span style={{ fontSize: '11px', fontWeight: 600, color: 'rgba(0, 49, 66, 0.6)' }}>Low</span>
+          <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-tertiary)' }}>Low</span>
           {stats && (
-            <span style={{ fontSize: '10px', color: 'rgba(0, 49, 66, 0.5)', fontVariantNumeric: 'tabular-nums' }}>
+            <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontVariantNumeric: 'tabular-nums' }}>
               {formatValueConsistent(stats.minCount)}
             </span>
           )}
@@ -791,9 +841,9 @@ const HourlyHeatmapPremium: React.FC<HourlyHeatmapPremiumProps> = ({
         
         {/* High Label */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minWidth: '40px' }}>
-          <span style={{ fontSize: '11px', fontWeight: 600, color: 'rgba(0, 49, 66, 0.6)' }}>High</span>
+          <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-tertiary)' }}>High</span>
           {stats && (
-            <span style={{ fontSize: '10px', color: 'rgba(0, 49, 66, 0.5)', fontVariantNumeric: 'tabular-nums' }}>
+            <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontVariantNumeric: 'tabular-nums' }}>
               {formatValueConsistent(stats.maxCount)}
             </span>
           )}
@@ -806,7 +856,7 @@ const HourlyHeatmapPremium: React.FC<HourlyHeatmapPremiumProps> = ({
           gap: '12px',
           marginLeft: '16px',
           paddingLeft: '16px',
-          borderLeft: '1px solid #e2e8f0'
+          borderLeft: '1px solid var(--border-subtle)'
         }}>
           {/* Peak Indicator */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -817,7 +867,7 @@ const HourlyHeatmapPremium: React.FC<HourlyHeatmapPremiumProps> = ({
               backgroundColor: '#7FB3C8',
               boxShadow: '0 0 4px rgba(127, 179, 200, 0.4)'
             }} />
-            <span style={{ fontSize: '11px', fontWeight: 500, color: 'rgba(0, 49, 66, 0.6)' }}>Peak</span>
+            <span style={{ fontSize: '11px', fontWeight: 500, color: 'var(--text-tertiary)' }}>Peak</span>
           </div>
         </div>
       </div>
@@ -952,11 +1002,11 @@ const AdvancedCharts = () => {
   };
 
   const cardStyle: React.CSSProperties = {
-    backgroundColor: '#ffffff',
+    backgroundColor: 'var(--surface-base)',
     borderRadius: '16px',
     padding: isMobile ? '18px' : '24px',
-    border: '1px solid #D1E8E3',
-    boxShadow: '0 1px 3px rgba(0, 49, 66, 0.04)'
+    border: '1px solid var(--border-subtle)',
+    boxShadow: 'var(--shadow-card)'
   };
 
   // Prepare stacked bar data for status split by date
@@ -1006,13 +1056,14 @@ const AdvancedCharts = () => {
 
     return (
       <div style={{
-        backgroundColor: 'rgba(255, 255, 255, 0.98)',
+        backgroundColor: 'var(--surface-overlay)',
+        opacity: 0.98,
         backdropFilter: 'blur(12px)',
         WebkitBackdropFilter: 'blur(12px)',
-        border: '1px solid rgba(226, 232, 240, 0.8)',
+        border: '1px solid var(--border-default)',
         borderRadius: '14px',
         padding: '16px 20px',
-        boxShadow: '0 8px 32px -4px rgba(0, 0, 0, 0.12), 0 4px 16px -4px rgba(0, 0, 0, 0.08)',
+        boxShadow: 'var(--shadow-dropdown)',
         minWidth: '220px',
         animation: 'tooltipFadeIn 0.15s ease-out'
       }}>
@@ -1020,7 +1071,7 @@ const AdvancedCharts = () => {
         <p style={{ 
           fontSize: '11px', 
           fontWeight: 600, 
-          color: 'rgba(0, 49, 66, 0.6)', 
+          color: 'var(--text-tertiary)', 
           margin: '0 0 12px 0',
           textTransform: 'uppercase',
           letterSpacing: '0.05em'
@@ -1051,7 +1102,7 @@ const AdvancedCharts = () => {
               }} />
               <span style={{ 
                 fontSize: '12px', 
-                color: 'rgba(0, 49, 66, 0.6)',
+                color: 'var(--text-tertiary)',
                 fontWeight: 500 
               }}>
                 Volume
@@ -1061,7 +1112,7 @@ const AdvancedCharts = () => {
               <span style={{ 
                 fontSize: '24px', 
                 fontWeight: 700, 
-                color: '#003142',
+                color: 'var(--text-primary)',
                 fontVariantNumeric: 'tabular-nums',
                 letterSpacing: '-0.02em'
               }}>
@@ -1071,7 +1122,7 @@ const AdvancedCharts = () => {
                 <span style={{ 
                   fontSize: '11px', 
                   fontWeight: 600, 
-                  color: volumeDelta >= 0 ? '#10b981' : '#ef4444'
+                  color: volumeDelta >= 0 ? 'var(--success)' : 'var(--error)'
                 }}>
                   {volumeDelta >= 0 ? '+' : ''}{volumeDelta >= 0 ? formatNumber(volumeDelta) : formatNumber(Math.abs(volumeDelta))}
                 </span>
@@ -1098,7 +1149,7 @@ const AdvancedCharts = () => {
               }} />
               <span style={{ 
                 fontSize: '12px', 
-                color: 'rgba(0, 49, 66, 0.6)',
+                color: 'var(--text-tertiary)',
                 fontWeight: 500 
               }}>
                 GTV
@@ -1108,7 +1159,7 @@ const AdvancedCharts = () => {
               <span style={{ 
                 fontSize: '24px', 
                 fontWeight: 700, 
-                color: '#003142',
+                color: 'var(--text-primary)',
                 fontVariantNumeric: 'tabular-nums',
                 letterSpacing: '-0.02em'
               }}>
@@ -1128,7 +1179,7 @@ const AdvancedCharts = () => {
                     width="12" 
                     height="12" 
                     fill="none" 
-                    stroke={gtvDelta >= 0 ? '#10b981' : '#ef4444'} 
+                    stroke={gtvDelta >= 0 ? 'var(--success)' : 'var(--error)'} 
                     strokeWidth={2.5} 
                     viewBox="0 0 24 24"
                   >
@@ -1144,7 +1195,7 @@ const AdvancedCharts = () => {
                   <span style={{ 
                     fontSize: '11px', 
                     fontWeight: 600, 
-                    color: gtvDelta >= 0 ? '#059669' : '#dc2626'
+                    color: gtvDelta >= 0 ? 'var(--success)' : 'var(--error)'
                   }}>
                     {gtvDelta >= 0 ? '+' : ''}{gtvDeltaPercent}%
                   </span>
@@ -1184,13 +1235,14 @@ const AdvancedCharts = () => {
 
     return (
       <div style={{
-        backgroundColor: 'rgba(255, 255, 255, 0.98)',
+        backgroundColor: 'var(--surface-overlay)',
+        opacity: 0.98,
         backdropFilter: 'blur(12px)',
         WebkitBackdropFilter: 'blur(12px)',
-        border: '1px solid rgba(226, 232, 240, 0.8)',
+        border: '1px solid var(--border-default)',
         borderRadius: '14px',
         padding: '16px 20px',
-        boxShadow: '0 8px 32px -4px rgba(0, 0, 0, 0.12), 0 4px 16px -4px rgba(0, 0, 0, 0.08)',
+        boxShadow: 'var(--shadow-dropdown)',
         minWidth: '200px',
         animation: 'tooltipFadeIn 0.15s ease-out'
       }}>
@@ -1198,7 +1250,7 @@ const AdvancedCharts = () => {
         <p style={{ 
           fontSize: '11px', 
           fontWeight: 600, 
-          color: 'rgba(0, 49, 66, 0.6)', 
+          color: 'var(--text-tertiary)', 
           margin: '0 0 12px 0',
           textTransform: 'uppercase',
           letterSpacing: '0.05em',
@@ -1237,7 +1289,7 @@ const AdvancedCharts = () => {
               <span style={{ 
                 fontSize: '13px', 
                 fontWeight: 700, 
-                color: '#003142',
+                color: 'var(--text-primary)',
                 fontVariantNumeric: 'tabular-nums'
               }}>
                 {formatNumber(successValue)}
@@ -1279,7 +1331,7 @@ const AdvancedCharts = () => {
               <span style={{ 
                 fontSize: '13px', 
                 fontWeight: 700, 
-                color: '#003142',
+                color: 'var(--text-primary)',
                 fontVariantNumeric: 'tabular-nums'
               }}>
                 {formatNumber(pendingValue)}
@@ -1321,7 +1373,7 @@ const AdvancedCharts = () => {
               <span style={{ 
                 fontSize: '13px', 
                 fontWeight: 700, 
-                color: '#003142',
+                color: 'var(--text-primary)',
                 fontVariantNumeric: 'tabular-nums'
               }}>
                 {formatNumber(failedValue)}
@@ -1342,7 +1394,7 @@ const AdvancedCharts = () => {
         <div style={{
           marginTop: '12px',
           paddingTop: '12px',
-          borderTop: '1px solid rgba(0, 49, 66, 0.1)',
+          borderTop: '1px solid var(--border-subtle)',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center'
@@ -1350,7 +1402,7 @@ const AdvancedCharts = () => {
           <span style={{ 
             fontSize: '12px', 
             fontWeight: 600, 
-            color: 'rgba(0, 49, 66, 0.6)',
+            color: 'var(--text-tertiary)',
             textTransform: 'uppercase',
             letterSpacing: '0.03em'
           }}>
@@ -1359,7 +1411,7 @@ const AdvancedCharts = () => {
           <span style={{ 
             fontSize: '16px', 
             fontWeight: 700, 
-            color: '#003142',
+            color: 'var(--text-primary)',
             fontVariantNumeric: 'tabular-nums'
           }}>
             {formatNumber(total)}
@@ -1403,7 +1455,7 @@ const AdvancedCharts = () => {
               width: '36px',
               height: '36px',
               borderRadius: '10px',
-              backgroundColor: '#E6F4F1',
+                backgroundColor: 'var(--bg-subtle)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center'
@@ -1426,31 +1478,31 @@ const AdvancedCharts = () => {
               onChange={(e) => setDateRange({ ...dateRange, startDate: e.target.value })}
               style={{
                 padding: '10px 14px',
-                backgroundColor: '#f8fafc',
-                border: '1px solid #B8D9D1',
+                backgroundColor: 'var(--bg-subtle)',
+                border: '1px solid var(--border-default)',
                 borderRadius: '10px',
                 fontSize: '14px',
                 outline: 'none',
                 flex: isMobile ? 1 : 'none',
                 minWidth: 0,
-                color: 'rgba(0, 49, 66, 0.7)'
+                color: 'var(--text-secondary)'
               }}
             />
-            <span style={{ color: 'rgba(0, 49, 66, 0.5)', fontSize: '14px', flexShrink: 0 }}>to</span>
+            <span style={{ color: 'var(--text-muted)', fontSize: '14px', flexShrink: 0 }}>to</span>
             <input
               type="date"
               value={dateRange.endDate}
               onChange={(e) => setDateRange({ ...dateRange, endDate: e.target.value })}
               style={{
                 padding: '10px 14px',
-                backgroundColor: '#f8fafc',
-                border: '1px solid #B8D9D1',
+                backgroundColor: 'var(--bg-subtle)',
+                border: '1px solid var(--border-default)',
                 borderRadius: '10px',
                 fontSize: '14px',
                 outline: 'none',
                 flex: isMobile ? 1 : 'none',
                 minWidth: 0,
-                color: 'rgba(0, 49, 66, 0.7)'
+                color: 'var(--text-secondary)'
               }}
             />
           </div>
@@ -1479,13 +1531,13 @@ const AdvancedCharts = () => {
             <h3 style={{ 
               fontSize: isMobile ? '17px' : '19px', 
               fontWeight: 700, 
-              color: '#003142', 
+              color: 'var(--text-primary)', 
               margin: 0,
               letterSpacing: '-0.02em'
             }}>
               Daily Volume vs GTV
             </h3>
-            <p style={{ fontSize: '13px', color: 'rgba(0, 49, 66, 0.6)', margin: '6px 0 0 0', fontWeight: 500 }}>
+            <p style={{ fontSize: '13px', color: 'var(--text-tertiary)', margin: '6px 0 0 0', fontWeight: 500 }}>
               Transaction count (bars) and gross transaction value (line)
             </p>
           </div>
@@ -1505,8 +1557,8 @@ const AdvancedCharts = () => {
                 alignItems: 'center',
                 gap: '8px',
                 padding: '8px 14px',
-                backgroundColor: showVolume ? '#E6F4F1' : '#F0F9F7',
-                border: `1px solid ${showVolume ? COLORS.primary : '#B8D9D1'}`,
+                backgroundColor: showVolume ? 'var(--bg-page)' : 'var(--bg-subtle)',
+                border: `1px solid ${showVolume ? COLORS.primary : 'var(--border-default)'}`,
                 borderRadius: '10px',
                 cursor: 'pointer',
                 transition: 'all 0.15s ease',
@@ -1565,12 +1617,12 @@ const AdvancedCharts = () => {
                 justifyContent: 'center',
                 width: '36px',
                 height: '36px',
-                backgroundColor: '#f8fafc',
-                border: '1px solid #B8D9D1',
+                backgroundColor: 'var(--bg-subtle)',
+                border: '1px solid var(--border-default)',
                 borderRadius: '10px',
                 cursor: 'pointer',
                 transition: 'all 0.15s ease',
-                color: 'rgba(0, 49, 66, 0.6)'
+                color: 'var(--text-tertiary)'
               }}
               title="Download chart data"
             >
@@ -1608,7 +1660,7 @@ const AdvancedCharts = () => {
                 {/* Ultra-light gridlines */}
                 <CartesianGrid 
                   strokeDasharray="2 4" 
-                  stroke="#D1E8E3" 
+                  stroke="var(--border-subtle)" 
                   vertical={false}
                   strokeWidth={0.8}
                   strokeOpacity={0.5}
@@ -1618,9 +1670,9 @@ const AdvancedCharts = () => {
                 <XAxis
                   dataKey="date"
                   stroke="#B8D9D1"
-                  tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 500 }}
+                  tick={{ fill: 'var(--text-muted)', fontSize: 11, fontWeight: 500 }}
                   tickLine={false}
-                  axisLine={{ stroke: '#f1f5f9', strokeWidth: 1 }}
+                  axisLine={{ stroke: 'var(--border-subtle)', strokeWidth: 1 }}
                   tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                   interval={dailyData.length > 20 ? Math.floor(dailyData.length / 8) : Math.floor(dailyData.length / 6)}
                   dy={10}
@@ -1630,8 +1682,8 @@ const AdvancedCharts = () => {
                 {/* Y-Axis Left - Volume */}
                 <YAxis
                   yAxisId="left"
-                  stroke="#B8D9D1"
-                  tick={{ fill: '#64748b', fontSize: 11, fontWeight: 500 }}
+                  stroke="var(--border-default)"
+                  tick={{ fill: 'var(--text-muted)', fontSize: 11, fontWeight: 500 }}
                   tickLine={false}
                   axisLine={false}
                   tickFormatter={formatNumber}
@@ -1642,7 +1694,7 @@ const AdvancedCharts = () => {
                     angle: -90, 
                     position: 'insideLeft',
                     style: { 
-                      fill: '#64748b', 
+                      fill: 'var(--text-muted)', 
                       fontSize: '12px', 
                       fontWeight: 600,
                       textAnchor: 'middle'
@@ -1654,8 +1706,8 @@ const AdvancedCharts = () => {
                 <YAxis
                   yAxisId="right"
                   orientation="right"
-                  stroke="#B8D9D1"
-                  tick={{ fill: '#64748b', fontSize: 11, fontWeight: 500 }}
+                  stroke="var(--border-default)"
+                  tick={{ fill: 'var(--text-muted)', fontSize: 11, fontWeight: 500 }}
                   tickLine={false}
                   axisLine={false}
                   tickFormatter={formatCurrency}
@@ -1666,7 +1718,7 @@ const AdvancedCharts = () => {
                     angle: 90, 
                     position: 'insideRight',
                     style: { 
-                      fill: '#64748b', 
+                      fill: 'var(--text-muted)', 
                       fontSize: '12px', 
                       fontWeight: 600,
                       textAnchor: 'middle'
@@ -1712,7 +1764,7 @@ const AdvancedCharts = () => {
                     activeDot={{ 
                       r: 6, 
                       fill: COLORS.success, 
-                      stroke: '#ffffff', 
+                      stroke: 'var(--surface-base)', 
                       strokeWidth: 3,
                       style: { 
                         filter: 'drop-shadow(0 2px 4px rgba(5, 150, 105, 0.3))'
@@ -1734,15 +1786,15 @@ const AdvancedCharts = () => {
             flexDirection: 'column',
             alignItems: 'center', 
             justifyContent: 'center',
-            backgroundColor: '#E6F4F1',
+                backgroundColor: 'var(--bg-subtle)',
             borderRadius: '16px',
-            border: '1px dashed #B8D9D1'
+            border: '1px dashed var(--border-default)'
           }}>
             <div style={{
               width: '64px',
               height: '64px',
               borderRadius: '16px',
-              backgroundColor: '#E6F4F1',
+                backgroundColor: 'var(--bg-subtle)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -1765,7 +1817,7 @@ const AdvancedCharts = () => {
             <h3 style={{ 
               fontSize: isMobile ? '16px' : '17px', 
               fontWeight: 600, 
-              color: '#003142', 
+              color: 'var(--text-primary)', 
               margin: 0,
               letterSpacing: '-0.01em'
             }}>
@@ -1801,10 +1853,10 @@ const AdvancedCharts = () => {
                   </Pie>
                   <Tooltip
                     contentStyle={{ 
-                      backgroundColor: '#fff', 
-                      border: '1px solid #B8D9D1', 
+                      backgroundColor: 'var(--surface-base)', 
+                      border: '1px solid var(--border-default)', 
                       borderRadius: '10px',
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.08)'
+                      boxShadow: 'var(--shadow-dropdown)'
                     }}
                     formatter={(value: number | undefined, _name: string | undefined, props: any) => [
                       <span key="tooltip">
@@ -1833,9 +1885,9 @@ const AdvancedCharts = () => {
                       alignItems: 'center', 
                       gap: '10px',
                       padding: '8px 12px',
-                      backgroundColor: '#f8fafc',
+                      backgroundColor: 'var(--bg-subtle)',
                       borderRadius: '8px',
-                      border: '1px solid #D1E8E3'
+                      border: '1px solid var(--border-subtle)'
                     }}
                   >
                     <div style={{ 
@@ -1846,10 +1898,10 @@ const AdvancedCharts = () => {
                       flexShrink: 0 
                     }} />
                     <div>
-                      <p style={{ fontSize: '13px', fontWeight: 600, color: 'rgba(0, 49, 66, 0.7)', margin: 0 }}>
+                      <p style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', margin: 0 }}>
                         {method.paymentMethod}
                       </p>
-                      <p style={{ fontSize: '12px', color: 'rgba(0, 49, 66, 0.6)', margin: 0 }}>
+                      <p style={{ fontSize: '12px', color: 'var(--text-tertiary)', margin: 0 }}>
                         {method.percentage.toFixed(1)}%
                       </p>
                     </div>
@@ -1863,11 +1915,11 @@ const AdvancedCharts = () => {
               display: 'flex', 
               alignItems: 'center', 
               justifyContent: 'center',
-              backgroundColor: '#f8fafc',
+              backgroundColor: 'var(--bg-subtle)',
               borderRadius: '12px',
-              border: '1px dashed #B8D9D1'
+              border: '1px dashed var(--border-default)'
             }}>
-              <p style={{ color: 'rgba(0, 49, 66, 0.6)', fontSize: '14px' }}>No payment method data</p>
+              <p style={{ color: 'var(--text-tertiary)', fontSize: '14px' }}>No payment method data</p>
             </div>
           )}
         </div>
@@ -1893,13 +1945,13 @@ const AdvancedCharts = () => {
               <h3 style={{ 
                 fontSize: isMobile ? '17px' : '19px', 
                 fontWeight: 700, 
-                color: '#003142', 
+                color: 'var(--text-primary)', 
                 margin: 0,
                 letterSpacing: '-0.02em'
               }}>
                 Status Split Over Time
               </h3>
-              <p style={{ fontSize: '13px', color: 'rgba(0, 49, 66, 0.6)', margin: '6px 0 0 0', fontWeight: 500 }}>
+              <p style={{ fontSize: '13px', color: 'var(--text-tertiary)', margin: '6px 0 0 0', fontWeight: 500 }}>
                 Daily breakdown by status
               </p>
             </div>
@@ -1916,9 +1968,9 @@ const AdvancedCharts = () => {
                 display: 'flex',
                 gap: '6px',
                 padding: '4px',
-                backgroundColor: '#f8fafc',
+                backgroundColor: 'var(--bg-subtle)',
                 borderRadius: '10px',
-                border: '1px solid #D1E8E3'
+                border: '1px solid var(--border-subtle)'
               }}>
                 <button
                   onClick={() => setStatusViewMode('count')}
@@ -1926,12 +1978,12 @@ const AdvancedCharts = () => {
                     padding: '6px 12px',
                     fontSize: '12px',
                     fontWeight: statusViewMode === 'count' ? 600 : 500,
-                    color: statusViewMode === 'count' ? '#0f172a' : '#64748b',
-                    backgroundColor: statusViewMode === 'count' ? '#ffffff' : 'transparent',
+                    color: statusViewMode === 'count' ? 'var(--text-primary)' : 'var(--text-tertiary)',
+                    backgroundColor: statusViewMode === 'count' ? 'var(--surface-base)' : 'transparent',
                     border: 'none',
                     borderRadius: '8px',
                     cursor: 'pointer',
-                    boxShadow: statusViewMode === 'count' ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
+                    boxShadow: statusViewMode === 'count' ? 'var(--shadow-xs)' : 'none',
                     transition: 'all 0.15s ease'
                   }}
                 >
@@ -1943,12 +1995,12 @@ const AdvancedCharts = () => {
                     padding: '6px 12px',
                     fontSize: '12px',
                     fontWeight: statusViewMode === 'percentage' ? 600 : 500,
-                    color: statusViewMode === 'percentage' ? '#0f172a' : '#64748b',
-                backgroundColor: statusViewMode === 'percentage' ? '#ffffff' : 'transparent',
+                    color: statusViewMode === 'percentage' ? 'var(--text-primary)' : 'var(--text-tertiary)',
+                backgroundColor: statusViewMode === 'percentage' ? 'var(--surface-base)' : 'transparent',
                 border: 'none',
                 borderRadius: '8px',
                 cursor: 'pointer',
-                boxShadow: statusViewMode === 'percentage' ? '0 1px 2px rgba(0, 49, 66, 0.05)' : 'none',
+                boxShadow: statusViewMode === 'percentage' ? 'var(--shadow-xs)' : 'none',
                     transition: 'all 0.15s ease'
                   }}
                 >
@@ -1971,26 +2023,26 @@ const AdvancedCharts = () => {
                     alignItems: 'center',
                     gap: '8px',
                     padding: '8px 14px',
-                    backgroundColor: '#ffffff',
-                    border: `1px solid ${showSuccess ? STATUS_COLORS.SUCCESS.border : 'rgba(0, 49, 66, 0.1)'}`,
+                    backgroundColor: 'var(--surface-base)',
+                    border: `1px solid ${showSuccess ? STATUS_COLORS.SUCCESS.border : 'var(--border-subtle)'}`,
                     borderRadius: '10px',
                     cursor: 'pointer',
                     transition: 'all 0.15s ease',
                     fontSize: '12px',
                     fontWeight: 600,
-                    color: showSuccess ? '#003142' : 'rgba(0, 49, 66, 0.6)',
+                    color: showSuccess ? 'var(--text-primary)' : 'var(--text-tertiary)',
                     boxShadow: showSuccess ? `0 0 0 2px ${STATUS_COLORS.SUCCESS.light}` : 'none'
                   }}
                   onMouseEnter={(e) => {
                     if (!showSuccess) {
-                      e.currentTarget.style.borderColor = 'rgba(0, 49, 66, 0.15)';
-                      e.currentTarget.style.backgroundColor = '#F0F9F7';
+                      e.currentTarget.style.borderColor = 'var(--border-default)';
+                      e.currentTarget.style.backgroundColor = 'var(--bg-subtle)';
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (!showSuccess) {
-                      e.currentTarget.style.borderColor = 'rgba(0, 49, 66, 0.1)';
-                      e.currentTarget.style.backgroundColor = '#ffffff';
+                      e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                      e.currentTarget.style.backgroundColor = 'var(--surface-base)';
                     }
                   }}
                 >
@@ -2013,26 +2065,26 @@ const AdvancedCharts = () => {
                     alignItems: 'center',
                     gap: '8px',
                     padding: '8px 14px',
-                    backgroundColor: '#ffffff',
-                    border: `1px solid ${showPending ? STATUS_COLORS.PENDING.border : 'rgba(0, 49, 66, 0.1)'}`,
+                    backgroundColor: 'var(--surface-base)',
+                    border: `1px solid ${showPending ? STATUS_COLORS.PENDING.border : 'var(--border-subtle)'}`,
                     borderRadius: '10px',
                     cursor: 'pointer',
                     transition: 'all 0.15s ease',
                     fontSize: '12px',
                     fontWeight: 600,
-                    color: showPending ? '#003142' : 'rgba(0, 49, 66, 0.6)',
+                    color: showPending ? 'var(--text-primary)' : 'var(--text-tertiary)',
                     boxShadow: showPending ? `0 0 0 2px ${STATUS_COLORS.PENDING.light}` : 'none'
                   }}
                   onMouseEnter={(e) => {
                     if (!showPending) {
-                      e.currentTarget.style.borderColor = 'rgba(0, 49, 66, 0.15)';
-                      e.currentTarget.style.backgroundColor = '#F0F9F7';
+                      e.currentTarget.style.borderColor = 'var(--border-default)';
+                      e.currentTarget.style.backgroundColor = 'var(--bg-subtle)';
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (!showPending) {
-                      e.currentTarget.style.borderColor = 'rgba(0, 49, 66, 0.1)';
-                      e.currentTarget.style.backgroundColor = '#ffffff';
+                      e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                      e.currentTarget.style.backgroundColor = 'var(--surface-base)';
                     }
                   }}
                 >
@@ -2055,26 +2107,26 @@ const AdvancedCharts = () => {
                     alignItems: 'center',
                     gap: '8px',
                     padding: '8px 14px',
-                    backgroundColor: '#ffffff',
-                    border: `1px solid ${showFailed ? STATUS_COLORS.FAILED.border : 'rgba(0, 49, 66, 0.1)'}`,
+                    backgroundColor: 'var(--surface-base)',
+                    border: `1px solid ${showFailed ? STATUS_COLORS.FAILED.border : 'var(--border-subtle)'}`,
                     borderRadius: '10px',
                     cursor: 'pointer',
                     transition: 'all 0.15s ease',
                     fontSize: '12px',
                     fontWeight: 600,
-                    color: showFailed ? '#003142' : 'rgba(0, 49, 66, 0.6)',
+                    color: showFailed ? 'var(--text-primary)' : 'var(--text-tertiary)',
                     boxShadow: showFailed ? `0 0 0 2px ${STATUS_COLORS.FAILED.light}` : 'none'
                   }}
                   onMouseEnter={(e) => {
                     if (!showFailed) {
-                      e.currentTarget.style.borderColor = 'rgba(0, 49, 66, 0.15)';
-                      e.currentTarget.style.backgroundColor = '#F0F9F7';
+                      e.currentTarget.style.borderColor = 'var(--border-default)';
+                      e.currentTarget.style.backgroundColor = 'var(--bg-subtle)';
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (!showFailed) {
-                      e.currentTarget.style.borderColor = 'rgba(0, 49, 66, 0.1)';
-                      e.currentTarget.style.backgroundColor = '#ffffff';
+                      e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                      e.currentTarget.style.backgroundColor = 'var(--surface-base)';
                     }
                   }}
                 >
@@ -2103,14 +2155,14 @@ const AdvancedCharts = () => {
                 <defs>
                   {/* Track background pattern */}
                   <pattern id="trackPattern" patternUnits="userSpaceOnUse" width="4" height="4">
-                    <rect width="4" height="4" fill="#E6F4F1"/>
+                    <rect width="4" height="4" fill="var(--bg-subtle)"/>
                   </pattern>
                 </defs>
                 
                 {/* Ultra-light gridlines */}
                 <CartesianGrid 
                   strokeDasharray="2 4" 
-                  stroke="#D1E8E3" 
+                  stroke="var(--border-subtle)" 
                   vertical={false}
                   strokeWidth={0.8}
                   strokeOpacity={0.5}
@@ -2120,9 +2172,9 @@ const AdvancedCharts = () => {
                 <XAxis
                   dataKey="date"
                   stroke="#B8D9D1"
-                  tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 500 }}
+                  tick={{ fill: 'var(--text-muted)', fontSize: 11, fontWeight: 500 }}
                   tickLine={false}
-                  axisLine={{ stroke: '#f1f5f9', strokeWidth: 1 }}
+                  axisLine={{ stroke: 'var(--border-subtle)', strokeWidth: 1 }}
                   tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', { 
                     month: 'short', 
                     day: 'numeric' 
@@ -2134,8 +2186,8 @@ const AdvancedCharts = () => {
                 
                 {/* Y-Axis with label */}
                 <YAxis
-                  stroke="rgba(0, 49, 66, 0.1)"
-                  tick={{ fill: 'rgba(0, 49, 66, 0.6)', fontSize: 11, fontWeight: 500 }}
+                  stroke="var(--border-subtle)"
+                  tick={{ fill: 'var(--text-tertiary)', fontSize: 11, fontWeight: 500 }}
                   tickLine={false}
                   axisLine={false}
                   tickFormatter={statusViewMode === 'percentage' ? (v) => `${Math.round(v)}%` : formatNumber}
@@ -2159,8 +2211,8 @@ const AdvancedCharts = () => {
                 <Tooltip 
                   content={<PremiumStatusTooltip />}
                   cursor={{ 
-                    fill: 'rgba(0, 49, 66, 0.05)',
-                    stroke: 'rgba(0, 49, 66, 0.1)',
+                    fill: 'rgba(127, 179, 200, 0.08)',
+                    stroke: 'rgba(127, 179, 200, 0.15)',
                     strokeWidth: 1
                   }}
                 />
@@ -2172,7 +2224,7 @@ const AdvancedCharts = () => {
                     stackId="status" 
                     fill={STATUS_COLORS.SUCCESS.main}
                     radius={statusViewMode === 'percentage' ? [0, 0, 8, 8] : [0, 0, 8, 8]}
-                    stroke="#ffffff"
+                    stroke="var(--surface-base)"
                     strokeWidth={2}
                     animationBegin={0}
                     animationDuration={800}
@@ -2184,7 +2236,7 @@ const AdvancedCharts = () => {
                     dataKey="PENDING" 
                     stackId="status" 
                     fill={STATUS_COLORS.PENDING.main}
-                    stroke="#ffffff"
+                    stroke="var(--surface-base)"
                     strokeWidth={2}
                     animationBegin={100}
                     animationDuration={800}
@@ -2197,7 +2249,7 @@ const AdvancedCharts = () => {
                     stackId="status" 
                     fill={STATUS_COLORS.FAILED.main}
                     radius={statusViewMode === 'percentage' ? [8, 8, 0, 0] : [8, 8, 0, 0]}
-                    stroke="#ffffff"
+                    stroke="var(--surface-base)"
                     strokeWidth={2}
                     animationBegin={200}
                     animationDuration={800}
@@ -2213,15 +2265,15 @@ const AdvancedCharts = () => {
               flexDirection: 'column',
               alignItems: 'center', 
               justifyContent: 'center',
-              backgroundColor: '#E6F4F1',
+                backgroundColor: 'var(--bg-subtle)',
               borderRadius: '16px',
-              border: '1px dashed #B8D9D1'
+              border: '1px dashed var(--border-default)'
             }}>
               <div style={{
                 width: '48px',
                 height: '48px',
                 borderRadius: '12px',
-                backgroundColor: '#E6F4F1',
+                backgroundColor: 'var(--bg-page)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',

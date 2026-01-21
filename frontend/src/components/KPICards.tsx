@@ -277,10 +277,10 @@ const KPICards = ({ periodDays = 7 }: KPICardsProps) => {
             key={i} 
             className="animate-fadeInUp"
             style={{ 
-              backgroundColor: '#ffffff', 
+              backgroundColor: 'var(--surface-base)', 
               borderRadius: '16px', 
               padding: isMobile ? '18px' : '20px', 
-              border: '1px solid #D1E8E3',
+              border: '1px solid var(--border-subtle)',
               animationDelay: `${i * 50}ms`
             }}
           >
@@ -301,29 +301,29 @@ const KPICards = ({ periodDays = 7 }: KPICardsProps) => {
   if (error || !kpis) {
     return (
       <div style={{ 
-        backgroundColor: '#ffffff', 
+        backgroundColor: 'var(--surface-base)', 
         borderRadius: '16px', 
         padding: '28px', 
-        border: '1px solid #FCA5A5',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
+        border: '1px solid var(--error-border)',
+        boxShadow: 'var(--shadow-sm)'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <div style={{ 
             width: '48px', 
             height: '48px', 
-            background: 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)', 
+            background: 'var(--error-light)', 
             borderRadius: '12px', 
             display: 'flex', 
             alignItems: 'center', 
             justifyContent: 'center' 
           }}>
-            <svg width="24" height="24" fill="none" stroke="#dc2626" strokeWidth={1.5} viewBox="0 0 24 24">
+            <svg width="24" height="24" fill="none" stroke="var(--error)" strokeWidth={1.5} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
             </svg>
           </div>
           <div>
-            <p style={{ fontSize: '15px', fontWeight: 600, color: '#003142', margin: 0 }}>Unable to load metrics</p>
-            <p style={{ fontSize: '13px', color: 'rgba(0, 49, 66, 0.6)', margin: '4px 0 0 0' }}>{error || 'Please try again later'}</p>
+            <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Unable to load metrics</p>
+            <p style={{ fontSize: '13px', color: 'var(--text-tertiary)', margin: '4px 0 0 0' }}>{error || 'Please try again later'}</p>
           </div>
         </div>
       </div>
@@ -519,13 +519,13 @@ const KPICards = ({ periodDays = 7 }: KPICardsProps) => {
             onMouseEnter={() => setHoveredCard(index)}
             onMouseLeave={() => setHoveredCard(null)}
             style={{
-              backgroundColor: '#ffffff',
+              backgroundColor: 'var(--surface-base)',
               borderRadius: '16px',
               padding: isMobile ? '18px' : '20px',
-              border: `1px solid ${isHovered ? card.theme.accentBorder : '#D1E8E3'}`,
+              border: `1px solid ${isHovered ? card.theme.accentBorder : 'var(--border-subtle)'}`,
               boxShadow: isHovered 
-                ? '0 8px 24px -4px rgba(0, 49, 66, 0.08), 0 4px 8px -4px rgba(0, 49, 66, 0.04)' 
-                : '0 1px 3px rgba(0, 49, 66, 0.04)',
+                ? 'var(--shadow-card-hover)' 
+                : 'var(--shadow-card)',
               transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
               cursor: 'pointer',
               transform: isHovered ? 'translateY(-2px)' : 'translateY(0)',
@@ -569,9 +569,9 @@ const KPICards = ({ periodDays = 7 }: KPICardsProps) => {
                 borderRadius: '20px',
                 fontSize: '12px',
                 fontWeight: 600,
-                backgroundColor: isGood ? '#ecfdf5' : '#fef2f2',
-                color: isGood ? '#059669' : '#dc2626',
-                border: `1px solid ${isGood ? '#d1fae5' : '#fee2e2'}`
+                backgroundColor: isGood ? 'var(--success-light)' : 'var(--error-light)',
+                color: isGood ? 'var(--success)' : 'var(--error)',
+                border: `1px solid ${isGood ? 'var(--success-soft)' : 'var(--error-soft)'}`
               }}>
                 <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d={card.change >= 0 ? 'M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18' : 'M19.5 13.5L12 21m0 0l-7.5-7.5M12 21V3'} />
@@ -587,7 +587,7 @@ const KPICards = ({ periodDays = 7 }: KPICardsProps) => {
                 style={{ 
                   fontSize: isMobile ? '24px' : '28px', 
                   fontWeight: 700, 
-                  color: '#003142', 
+                  color: 'var(--text-primary)', 
                   margin: '0 0 4px 0',
                   lineHeight: 1.1,
                   letterSpacing: '-0.02em',
@@ -600,7 +600,7 @@ const KPICards = ({ periodDays = 7 }: KPICardsProps) => {
                 className="kpi-title"
                 style={{ 
                   fontSize: isMobile ? '12px' : '13px', 
-                  color: 'rgba(0, 49, 66, 0.6)', 
+                  color: 'var(--text-tertiary)', 
                   margin: 0,
                   fontWeight: 500,
                   letterSpacing: '0.01em'

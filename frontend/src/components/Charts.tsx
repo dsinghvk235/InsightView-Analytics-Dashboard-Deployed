@@ -125,21 +125,22 @@ const PremiumRevenueTooltip = ({
 
   return (
     <div style={{
-      backgroundColor: 'rgba(255, 255, 255, 0.98)',
+      backgroundColor: 'var(--surface-overlay)',
       backdropFilter: 'blur(12px)',
       WebkitBackdropFilter: 'blur(12px)',
-      border: '1px solid rgba(226, 232, 240, 0.8)',
+      border: '1px solid var(--border-default)',
       borderRadius: '14px',
       padding: '14px 18px',
-      boxShadow: '0 8px 32px -4px rgba(0, 0, 0, 0.12), 0 4px 16px -4px rgba(0, 0, 0, 0.08)',
+      boxShadow: 'var(--shadow-dropdown)',
       minWidth: '180px',
-      animation: 'tooltipFadeIn 0.15s ease-out'
+      animation: 'tooltipFadeIn 0.15s ease-out',
+      opacity: 0.98
     }}>
       {/* Date Header */}
       <p style={{ 
         fontSize: '11px', 
         fontWeight: 600, 
-        color: 'rgba(0, 49, 66, 0.6)', 
+        color: 'var(--text-tertiary)', 
         margin: '0 0 10px 0',
         textTransform: 'uppercase',
         letterSpacing: '0.05em'
@@ -164,14 +165,14 @@ const PremiumRevenueTooltip = ({
         <div style={{ flex: 1 }}>
           <span style={{ 
             fontSize: '12px', 
-            color: 'rgba(0, 49, 66, 0.6)',
+            color: 'var(--text-tertiary)',
             fontWeight: 500 
           }}>Revenue</span>
         </div>
         <span style={{ 
           fontSize: '15px', 
           fontWeight: 700, 
-          color: '#003142',
+          color: 'var(--text-primary)',
           fontVariantNumeric: 'tabular-nums'
         }}>
           {formatCurrency(currentValue)}
@@ -185,15 +186,15 @@ const PremiumRevenueTooltip = ({
           alignItems: 'center',
           gap: '6px',
           padding: '8px 10px',
-          backgroundColor: delta >= 0 ? '#ecfdf5' : '#fef2f2',
+          backgroundColor: delta >= 0 ? 'var(--success-light)' : 'var(--error-light)',
           borderRadius: '8px',
-          border: `1px solid ${delta >= 0 ? '#d1fae5' : '#fee2e2'}`
+          border: `1px solid ${delta >= 0 ? 'var(--success-soft)' : 'var(--error-soft)'}`
         }}>
           <svg 
             width="14" 
             height="14" 
             fill="none" 
-            stroke={delta >= 0 ? '#10b981' : '#ef4444'} 
+            stroke={delta >= 0 ? 'var(--success)' : 'var(--error)'} 
             strokeWidth={2.5} 
             viewBox="0 0 24 24"
           >
@@ -209,13 +210,13 @@ const PremiumRevenueTooltip = ({
           <span style={{ 
             fontSize: '12px', 
             fontWeight: 600, 
-            color: delta >= 0 ? '#059669' : '#dc2626'
+            color: delta >= 0 ? 'var(--success)' : 'var(--error)'
           }}>
             {delta >= 0 ? '+' : ''}{deltaPercent}%
           </span>
           <span style={{ 
             fontSize: '11px', 
-            color: 'rgba(0, 49, 66, 0.6)',
+            color: 'var(--text-tertiary)',
             marginLeft: '2px'
           }}>
             vs prev day
@@ -247,7 +248,7 @@ const CustomActiveDot = (props: any) => {
         cx={cx} 
         cy={cy} 
         r={8} 
-        fill="#ffffff"
+        fill="var(--surface-base)"
         stroke={CHART_COLORS.primary}
         strokeWidth={2}
         style={{ transition: 'all 0.15s ease' }}
@@ -275,7 +276,7 @@ const CustomCursor = (props: any) => {
       y1={0}
       x2={points[0].x}
       y2={height}
-      stroke="#cbd5e1"
+      stroke="var(--border-subtle)"
       strokeWidth={1}
       strokeDasharray="4 4"
       style={{ transition: 'all 0.1s ease' }}
@@ -295,13 +296,14 @@ const PremiumPaymentTooltip = ({ active, payload }: any) => {
 
   return (
     <div style={{
-      backgroundColor: 'rgba(255, 255, 255, 0.98)',
+      backgroundColor: 'var(--surface-overlay)',
       backdropFilter: 'blur(12px)',
       WebkitBackdropFilter: 'blur(12px)',
-      border: '1px solid rgba(226, 232, 240, 0.8)',
+      border: '1px solid var(--border-default)',
       borderRadius: '14px',
       padding: '14px 18px',
-      boxShadow: '0 8px 32px -4px rgba(0, 0, 0, 0.12), 0 4px 16px -4px rgba(0, 0, 0, 0.08)',
+      boxShadow: 'var(--shadow-dropdown)',
+      opacity: 0.98,
       minWidth: '140px',
       animation: 'tooltipFadeIn 0.15s ease-out'
     }}>
@@ -322,7 +324,7 @@ const PremiumPaymentTooltip = ({ active, payload }: any) => {
         <span style={{ 
           fontSize: '14px', 
           fontWeight: 600, 
-          color: '#003142'
+          color: 'var(--text-primary)'
         }}>
           {label}
         </span>
@@ -346,7 +348,7 @@ const PremiumPaymentTooltip = ({ active, payload }: any) => {
         <span style={{ 
           fontSize: '16px', 
           fontWeight: 600, 
-          color: 'rgba(0, 49, 66, 0.5)'
+          color: 'var(--text-muted)'
         }}>
           %
         </span>
@@ -355,7 +357,7 @@ const PremiumPaymentTooltip = ({ active, payload }: any) => {
       {/* Subtitle */}
       <p style={{ 
         fontSize: '11px', 
-        color: 'rgba(0, 49, 66, 0.6)',
+        color: 'var(--text-tertiary)',
         margin: '6px 0 0 0',
         fontWeight: 500
       }}>
@@ -471,20 +473,20 @@ const Charts = ({ periodDays, showDatePicker = true }: ChartsProps) => {
   }, [revenueData.length]);
 
   const cardStyle: React.CSSProperties = {
-    backgroundColor: '#ffffff',
+    backgroundColor: 'var(--surface-base)',
     borderRadius: '16px',
     padding: isMobile ? '20px' : '28px',
-    border: '1px solid #D1E8E3',
-    boxShadow: '0 1px 3px rgba(0, 49, 66, 0.02), 0 8px 24px -4px rgba(0, 49, 66, 0.04)'
+    border: '1px solid var(--border-subtle)',
+    boxShadow: 'var(--shadow-card)'
   };
 
   // Premium card style for revenue chart
   const revenueCardStyle: React.CSSProperties = {
-    backgroundColor: '#ffffff',
+    backgroundColor: 'var(--surface-base)',
     borderRadius: '16px',
     padding: isMobile ? '20px' : '28px',
-    border: '1px solid #B8D9D1',
-    boxShadow: '0 1px 3px rgba(0, 49, 66, 0.02), 0 12px 40px -8px rgba(0, 49, 66, 0.06)',
+    border: '1px solid var(--border-default)',
+    boxShadow: 'var(--shadow-card-hover)',
     position: 'relative',
     overflow: 'hidden'
   };
@@ -541,7 +543,7 @@ const Charts = ({ periodDays, showDatePicker = true }: ChartsProps) => {
                 width: '38px',
                 height: '38px',
                 borderRadius: '10px',
-                background: 'linear-gradient(135deg, #E6F4F1 0%, #D1E8E3 100%)',
+                background: 'linear-gradient(135deg, var(--bg-subtle) 0%, var(--bg-muted) 100%)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center'
@@ -550,7 +552,7 @@ const Charts = ({ periodDays, showDatePicker = true }: ChartsProps) => {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
                 </svg>
               </div>
-              <span style={{ fontSize: '14px', fontWeight: 600, color: 'rgba(0, 49, 66, 0.7)' }}>Custom Range</span>
+              <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-secondary)' }}>Custom Range</span>
             </div>
             <div style={{ 
               display: 'flex', 
@@ -564,14 +566,14 @@ const Charts = ({ periodDays, showDatePicker = true }: ChartsProps) => {
                 onChange={(e) => setDateRange({ ...dateRange, startDate: e.target.value })}
                 style={{
                   padding: '10px 14px',
-                  backgroundColor: '#F0F9F7',
-                  border: '1px solid #B8D9D1',
+                  backgroundColor: 'var(--bg-subtle)',
+                  border: '1px solid var(--border-default)',
                   borderRadius: '10px',
                   fontSize: '14px',
                   outline: 'none',
                   flex: isMobile ? 1 : 'none',
                   minWidth: 0,
-                  color: 'rgba(0, 49, 66, 0.7)',
+                  color: 'var(--text-secondary)',
                   transition: 'all 0.15s ease'
                 }}
               />
@@ -582,14 +584,14 @@ const Charts = ({ periodDays, showDatePicker = true }: ChartsProps) => {
                 onChange={(e) => setDateRange({ ...dateRange, endDate: e.target.value })}
                 style={{
                   padding: '10px 14px',
-                  backgroundColor: '#F0F9F7',
-                  border: '1px solid #B8D9D1',
+                  backgroundColor: 'var(--bg-subtle)',
+                  border: '1px solid var(--border-default)',
                   borderRadius: '10px',
                   fontSize: '14px',
                   outline: 'none',
                   flex: isMobile ? 1 : 'none',
                   minWidth: 0,
-                  color: 'rgba(0, 49, 66, 0.7)',
+                  color: 'var(--text-secondary)',
                   transition: 'all 0.15s ease'
                 }}
               />
@@ -614,7 +616,7 @@ const Charts = ({ periodDays, showDatePicker = true }: ChartsProps) => {
             <h3 style={{ 
               fontSize: isMobile ? '18px' : '20px', 
               fontWeight: 700, 
-              color: '#003142', 
+              color: 'var(--text-primary)', 
               margin: 0,
               letterSpacing: '-0.02em',
               display: 'flex',
@@ -628,11 +630,11 @@ const Charts = ({ periodDays, showDatePicker = true }: ChartsProps) => {
                 alignItems: 'center',
                 gap: '4px',
                 padding: '3px 8px',
-                backgroundColor: '#ecfdf5',
+                backgroundColor: 'var(--success-light)',
                 borderRadius: '20px',
                 fontSize: '11px',
                 fontWeight: 600,
-                color: '#059669',
+                color: 'var(--success)',
                 textTransform: 'uppercase',
                 letterSpacing: '0.03em'
               }}>
@@ -648,7 +650,7 @@ const Charts = ({ periodDays, showDatePicker = true }: ChartsProps) => {
             </h3>
             <p style={{ 
               fontSize: '13px', 
-              color: 'rgba(0, 49, 66, 0.6)', 
+              color: 'var(--text-tertiary)', 
               margin: '6px 0 0 0',
               fontWeight: 500 
             }}>
@@ -669,9 +671,9 @@ const Charts = ({ periodDays, showDatePicker = true }: ChartsProps) => {
               alignItems: 'center', 
               gap: '8px',
               padding: '8px 14px',
-              backgroundColor: '#F0F9F7',
+              backgroundColor: 'var(--bg-subtle)',
               borderRadius: '10px',
-              border: '1px solid #D1E8E3'
+              border: '1px solid var(--border-subtle)'
             }}>
               <div style={{ 
                 width: '10px', 
@@ -679,7 +681,7 @@ const Charts = ({ periodDays, showDatePicker = true }: ChartsProps) => {
                 borderRadius: '3px', 
                 backgroundColor: CHART_COLORS.primary 
               }} />
-              <span style={{ fontSize: '13px', color: 'rgba(0, 49, 66, 0.6)', fontWeight: 600 }}>Revenue</span>
+              <span style={{ fontSize: '13px', color: 'var(--text-tertiary)', fontWeight: 600 }}>Revenue</span>
             </div>
 
             {/* Average Line Toggle */}
@@ -690,14 +692,14 @@ const Charts = ({ periodDays, showDatePicker = true }: ChartsProps) => {
                 alignItems: 'center',
                 gap: '6px',
                 padding: '8px 14px',
-                backgroundColor: showAvgLine ? '#eef2ff' : '#f8fafc',
-                border: `1px solid ${showAvgLine ? CHART_COLORS.primary : '#e2e8f0'}`,
+                backgroundColor: showAvgLine ? 'var(--accent-blue-light)' : 'var(--bg-subtle)',
+                border: `1px solid ${showAvgLine ? CHART_COLORS.primary : 'var(--border-subtle)'}`,
                 borderRadius: '10px',
                 cursor: 'pointer',
                 transition: 'all 0.15s ease',
                 fontSize: '13px',
                 fontWeight: 500,
-                color: showAvgLine ? CHART_COLORS.primary : '#64748b'
+                color: showAvgLine ? CHART_COLORS.primary : 'var(--text-muted)'
               }}
             >
               <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
@@ -725,7 +727,7 @@ const Charts = ({ periodDays, showDatePicker = true }: ChartsProps) => {
                     alignItems: 'center',
                     gap: '6px',
                     fontSize: '12px',
-                    color: 'rgba(0, 49, 66, 0.6)'
+                    color: 'var(--text-tertiary)'
                   }}>
                     <div style={{
                       width: '8px',
@@ -733,7 +735,7 @@ const Charts = ({ periodDays, showDatePicker = true }: ChartsProps) => {
                       borderRadius: '50%',
                       backgroundColor: '#10b981'
                     }} />
-                    <span>Peak: <strong style={{ color: '#003142' }}>{formatCurrency(peakPoint.revenue)}</strong></span>
+                    <span>Peak: <strong style={{ color: 'var(--text-primary)' }}>{formatCurrency(peakPoint.revenue)}</strong></span>
                   </div>
                 )}
                 {lowPoint && peakPoint !== lowPoint && (
@@ -742,15 +744,15 @@ const Charts = ({ periodDays, showDatePicker = true }: ChartsProps) => {
                     alignItems: 'center',
                     gap: '6px',
                     fontSize: '12px',
-                    color: 'rgba(0, 49, 66, 0.6)'
+                    color: 'var(--text-tertiary)'
                   }}>
                     <div style={{
                       width: '8px',
                       height: '8px',
                       borderRadius: '50%',
-                      backgroundColor: '#f59e0b'
+                      backgroundColor: 'var(--warning)'
                     }} />
-                    <span>Low: <strong style={{ color: '#003142' }}>{formatCurrency(lowPoint.revenue)}</strong></span>
+                    <span>Low: <strong style={{ color: 'var(--text-primary)' }}>{formatCurrency(lowPoint.revenue)}</strong></span>
                   </div>
                 )}
                 {showAvgLine && (
@@ -759,15 +761,15 @@ const Charts = ({ periodDays, showDatePicker = true }: ChartsProps) => {
                     alignItems: 'center',
                     gap: '6px',
                     fontSize: '12px',
-                    color: 'rgba(0, 49, 66, 0.6)'
+                    color: 'var(--text-tertiary)'
                   }}>
                     <div style={{
                       width: '12px',
                       height: '2px',
-                      backgroundColor: '#8b5cf6',
+                      backgroundColor: 'var(--accent-blue)',
                       borderRadius: '1px'
                     }} />
-                    <span>Avg: <strong style={{ color: '#003142' }}>{formatCurrency(averageValue)}</strong></span>
+                    <span>Avg: <strong style={{ color: 'var(--text-primary)' }}>{formatCurrency(averageValue)}</strong></span>
                   </div>
                 )}
               </div>
@@ -803,7 +805,7 @@ const Charts = ({ periodDays, showDatePicker = true }: ChartsProps) => {
                 {/* Subtle Gridlines */}
                 <CartesianGrid 
                   strokeDasharray="4 4" 
-                  stroke="#D1E8E3" 
+                  stroke="var(--border-subtle)" 
                   vertical={false}
                   strokeWidth={1}
                   strokeOpacity={0.8}
@@ -812,14 +814,14 @@ const Charts = ({ periodDays, showDatePicker = true }: ChartsProps) => {
                 {/* X-Axis */}
                 <XAxis
                   dataKey="date"
-                  stroke="#B8D9D1"
+                  stroke="var(--border-default)"
                   tick={{ 
-                    fill: '#94a3b8', 
+                    fill: 'var(--text-muted)', 
                     fontSize: isMobile ? 10 : 11,
                     fontWeight: 500 
                   }}
                   tickLine={false}
-                  axisLine={{ stroke: '#f1f5f9', strokeWidth: 1 }}
+                  axisLine={{ stroke: 'var(--border-subtle)', strokeWidth: 1 }}
                   tickFormatter={(value) => {
                     const date = new Date(value);
                     return date.toLocaleDateString('en-US', { 
@@ -834,9 +836,9 @@ const Charts = ({ periodDays, showDatePicker = true }: ChartsProps) => {
 
                 {/* Y-Axis */}
                 <YAxis
-                  stroke="#B8D9D1"
+                  stroke="var(--border-default)"
                   tick={{ 
-                    fill: '#64748b', 
+                    fill: 'var(--text-muted)', 
                     fontSize: isMobile ? 10 : 11,
                     fontWeight: 500
                   }}
@@ -867,7 +869,7 @@ const Charts = ({ periodDays, showDatePicker = true }: ChartsProps) => {
                     label={{
                       value: 'Peak',
                       position: 'top',
-                      fill: '#10b981',
+                      fill: 'var(--success)',
                       fontSize: 10,
                       fontWeight: 600,
                       dy: -8
@@ -927,26 +929,26 @@ const Charts = ({ periodDays, showDatePicker = true }: ChartsProps) => {
             flexDirection: 'column',
             alignItems: 'center', 
             justifyContent: 'center',
-            backgroundColor: '#E6F4F1',
+            backgroundColor: 'var(--bg-page)',
             borderRadius: '16px',
-            border: '1px dashed #B8D9D1'
+            border: '1px dashed var(--border-default)'
           }}>
             <div style={{
               width: '64px',
               height: '64px',
               borderRadius: '16px',
-              backgroundColor: '#E6F4F1',
+              backgroundColor: 'var(--bg-page)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               marginBottom: '16px'
             }}>
-              <svg width="28" height="28" fill="none" stroke="#94a3b8" strokeWidth={1.5} viewBox="0 0 24 24">
+              <svg width="28" height="28" fill="none" stroke="var(--text-muted)" strokeWidth={1.5} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
               </svg>
             </div>
-            <p style={{ color: 'rgba(0, 49, 66, 0.7)', fontSize: '15px', fontWeight: 600, margin: 0 }}>No revenue data available</p>
-            <p style={{ color: 'rgba(0, 49, 66, 0.5)', fontSize: '13px', marginTop: '6px' }}>Try selecting a different date range</p>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '15px', fontWeight: 600, margin: 0 }}>No revenue data available</p>
+            <p style={{ color: 'var(--text-muted)', fontSize: '13px', marginTop: '6px' }}>Try selecting a different date range</p>
           </div>
         )}
       </div>
@@ -969,13 +971,13 @@ const Charts = ({ periodDays, showDatePicker = true }: ChartsProps) => {
             <h3 style={{ 
               fontSize: isMobile ? '16px' : '18px', 
               fontWeight: 700, 
-              color: '#003142', 
+              color: 'var(--text-primary)', 
               margin: 0,
               letterSpacing: '-0.02em'
             }}>
               Payment Methods
             </h3>
-            <p style={{ fontSize: '13px', color: 'rgba(0, 49, 66, 0.6)', margin: '6px 0 0 0', fontWeight: 500 }}>
+            <p style={{ fontSize: '13px', color: 'var(--text-tertiary)', margin: '6px 0 0 0', fontWeight: 500 }}>
               Distribution by payment type
             </p>
           </div>
@@ -1020,7 +1022,7 @@ const Charts = ({ periodDays, showDatePicker = true }: ChartsProps) => {
                       outerRadius={isMobile ? 80 : 92}
                       paddingAngle={4}
                       dataKey="value"
-                      stroke="#ffffff"
+                      stroke="var(--surface-base)"
                       strokeWidth={3}
                       cornerRadius={6}
                       animationBegin={0}
@@ -1070,7 +1072,7 @@ const Charts = ({ periodDays, showDatePicker = true }: ChartsProps) => {
                   <span style={{
                     fontSize: '11px',
                     fontWeight: 600,
-                    color: 'rgba(0, 49, 66, 0.6)',
+                    color: 'var(--text-tertiary)',
                     letterSpacing: '0.05em',
                     textTransform: 'uppercase',
                     marginBottom: '2px'
@@ -1082,7 +1084,7 @@ const Charts = ({ periodDays, showDatePicker = true }: ChartsProps) => {
                   <span style={{
                     fontSize: isMobile ? '24px' : '28px',
                     fontWeight: 700,
-                    color: '#003142',
+                    color: 'var(--text-primary)',
                     fontVariantNumeric: 'tabular-nums',
                     letterSpacing: '-0.02em',
                     lineHeight: 1.1
@@ -1100,7 +1102,7 @@ const Charts = ({ periodDays, showDatePicker = true }: ChartsProps) => {
                       <span style={{
                         fontSize: '10px',
                         fontWeight: 500,
-                        color: 'rgba(0, 49, 66, 0.5)',
+                        color: 'var(--text-muted)',
                         marginTop: '4px',
                         maxWidth: isMobile ? '80px' : '90px',
                         lineHeight: 1.3
@@ -1141,9 +1143,9 @@ const Charts = ({ periodDays, showDatePicker = true }: ChartsProps) => {
                         flexDirection: 'column',
                         gap: '8px',
                         padding: '12px 14px',
-                        backgroundColor: isActive ? colorConfig.light : '#f8fafc',
+                        backgroundColor: isActive ? 'var(--accent-blue-light)' : 'var(--bg-subtle)',
                         borderRadius: '12px',
-                        border: `1px solid ${isActive ? colorConfig.main + '30' : '#f1f5f9'}`,
+                        border: `1px solid ${isActive ? colorConfig.main + '30' : 'var(--border-subtle)'}`,
                         boxShadow: isActive ? `0 0 0 3px ${colorConfig.main}15` : 'none',
                         opacity: isInactive ? 0.6 : 1,
                         transition: 'all 0.2s ease',
@@ -1173,7 +1175,7 @@ const Charts = ({ periodDays, showDatePicker = true }: ChartsProps) => {
                           <span style={{ 
                             fontSize: '13px', 
                             fontWeight: 600, 
-                            color: 'rgba(0, 49, 66, 0.7)'
+                            color: 'var(--text-secondary)'
                           }}>
                             {label}
                           </span>
@@ -1182,7 +1184,7 @@ const Charts = ({ periodDays, showDatePicker = true }: ChartsProps) => {
                         <span style={{ 
                           fontSize: '14px', 
                           fontWeight: 700, 
-                          color: '#003142',
+                          color: 'var(--text-primary)',
                           fontVariantNumeric: 'tabular-nums'
                         }}>
                           {method.percentage.toFixed(1)}%
@@ -1193,7 +1195,7 @@ const Charts = ({ periodDays, showDatePicker = true }: ChartsProps) => {
                       <div style={{
                         width: '100%',
                         height: '4px',
-                        backgroundColor: '#e2e8f0',
+                        backgroundColor: 'var(--border-subtle)',
                         borderRadius: '2px',
                         overflow: 'hidden'
                       }}>
@@ -1217,7 +1219,7 @@ const Charts = ({ periodDays, showDatePicker = true }: ChartsProps) => {
               flexDirection: 'column',
               alignItems: 'center', 
               justifyContent: 'center',
-              backgroundColor: '#E6F4F1',
+              backgroundColor: 'var(--bg-page)',
               borderRadius: '16px',
               border: '1px dashed #B8D9D1'
             }}>
@@ -1225,7 +1227,7 @@ const Charts = ({ periodDays, showDatePicker = true }: ChartsProps) => {
                 width: '48px',
                 height: '48px',
                 borderRadius: '12px',
-                backgroundColor: '#E6F4F1',
+                backgroundColor: 'var(--bg-page)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -1235,8 +1237,8 @@ const Charts = ({ periodDays, showDatePicker = true }: ChartsProps) => {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
                 </svg>
               </div>
-              <p style={{ color: 'rgba(0, 49, 66, 0.7)', fontSize: '14px', fontWeight: 600, margin: 0 }}>No payment method data</p>
-              <p style={{ color: 'rgba(0, 49, 66, 0.5)', fontSize: '12px', marginTop: '4px' }}>Data will appear when available</p>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '14px', fontWeight: 600, margin: 0 }}>No payment method data</p>
+              <p style={{ color: 'var(--text-muted)', fontSize: '12px', marginTop: '4px' }}>Data will appear when available</p>
             </div>
           )}
         </div>
@@ -1261,17 +1263,17 @@ const Charts = ({ periodDays, showDatePicker = true }: ChartsProps) => {
               <h3 style={{ 
                 fontSize: isMobile ? '16px' : '18px', 
                 fontWeight: 700, 
-                color: '#003142', 
+                color: 'var(--text-primary)', 
                 margin: 0,
                 letterSpacing: '-0.02em'
               }}>
                 Transaction Status
               </h3>
-              <p style={{ fontSize: '13px', color: 'rgba(0, 49, 66, 0.6)', margin: '6px 0 0 0', fontWeight: 500 }}>
+              <p style={{ fontSize: '13px', color: 'var(--text-tertiary)', margin: '6px 0 0 0', fontWeight: 500 }}>
                 Breakdown by status type{statusMetricType === 'amount' && (
                   <span style={{ 
                     fontSize: '11px', 
-                    color: 'rgba(0, 49, 66, 0.5)',
+                    color: 'var(--text-muted)',
                     marginLeft: '8px',
                     fontStyle: 'italic'
                   }}>
@@ -1286,9 +1288,9 @@ const Charts = ({ periodDays, showDatePicker = true }: ChartsProps) => {
               display: 'flex',
               gap: '6px',
               padding: '4px',
-              backgroundColor: '#F0F9F7',
+              backgroundColor: 'var(--bg-subtle)',
               borderRadius: '10px',
-              border: '1px solid #D1E8E3'
+              border: '1px solid var(--border-subtle)'
             }}>
               <button 
                 onClick={() => setStatusMetricType('count')}
@@ -1296,12 +1298,12 @@ const Charts = ({ periodDays, showDatePicker = true }: ChartsProps) => {
                   padding: '6px 12px',
                   fontSize: '12px',
                   fontWeight: statusMetricType === 'count' ? 600 : 500,
-                  color: statusMetricType === 'count' ? '#003142' : 'rgba(0, 49, 66, 0.6)',
-              backgroundColor: statusMetricType === 'count' ? '#ffffff' : 'transparent',
-                border: statusMetricType === 'count' ? '1px solid rgba(0, 49, 66, 0.1)' : 'none',
+                  color: statusMetricType === 'count' ? 'var(--text-primary)' : 'var(--text-tertiary)',
+                backgroundColor: statusMetricType === 'count' ? 'var(--surface-base)' : 'transparent',
+                border: statusMetricType === 'count' ? '1px solid var(--border-subtle)' : 'none',
                 borderRadius: '8px',
                 cursor: 'pointer',
-                boxShadow: statusMetricType === 'count' ? '0 1px 2px rgba(0, 49, 66, 0.05)' : 'none',
+                boxShadow: statusMetricType === 'count' ? 'var(--shadow-xs)' : 'none',
                 transition: 'all 0.15s ease'
               }}
             >
@@ -1313,9 +1315,9 @@ const Charts = ({ periodDays, showDatePicker = true }: ChartsProps) => {
                 padding: '6px 12px',
                 fontSize: '12px',
                 fontWeight: statusMetricType === 'amount' ? 600 : 500,
-                color: statusMetricType === 'amount' ? '#003142' : 'rgba(0, 49, 66, 0.6)',
-                backgroundColor: statusMetricType === 'amount' ? '#ffffff' : 'transparent',
-                border: statusMetricType === 'amount' ? '1px solid rgba(0, 49, 66, 0.1)' : 'none',
+                color: statusMetricType === 'amount' ? 'var(--text-primary)' : 'var(--text-tertiary)',
+                backgroundColor: statusMetricType === 'amount' ? 'var(--surface-base)' : 'transparent',
+                border: statusMetricType === 'amount' ? '1px solid var(--border-subtle)' : 'none',
                 borderRadius: '8px',
                 cursor: 'pointer',
                 boxShadow: statusMetricType === 'amount' ? '0 1px 2px rgba(0, 49, 66, 0.05)' : 'none',
@@ -1417,7 +1419,7 @@ const Charts = ({ periodDays, showDatePicker = true }: ChartsProps) => {
                             <span style={{
                               fontSize: isMobile ? '12px' : '13px',
                               fontWeight: 600,
-                              color: 'rgba(0, 49, 66, 0.7)',
+                              color: 'var(--text-secondary)',
                               textTransform: 'capitalize'
                             }}>
                               {label}
@@ -1436,9 +1438,9 @@ const Charts = ({ periodDays, showDatePicker = true }: ChartsProps) => {
                             <div style={{
                               position: 'absolute',
                               inset: 0,
-                              backgroundColor: isActive ? colorConfig.light : '#E6F4F1',
+                              backgroundColor: isActive ? 'var(--accent-blue-light)' : 'var(--bg-page)',
                               borderRadius: '12px',
-                              border: `1px solid ${isActive ? colorConfig.border : 'rgba(0, 49, 66, 0.1)'}`,
+                              border: `1px solid ${isActive ? colorConfig.border : 'var(--border-subtle)'}`,
                               transition: 'all 0.2s ease'
                             }} />
                             
@@ -1465,7 +1467,7 @@ const Charts = ({ periodDays, showDatePicker = true }: ChartsProps) => {
                                 <span style={{
                                   fontSize: '12px',
                                   fontWeight: 700,
-                                  color: '#ffffff',
+                                  color: 'var(--text-inverse)',
                                   fontVariantNumeric: 'tabular-nums',
                                   textShadow: '0 1px 2px rgba(0,0,0,0.1)'
                                 }}>
@@ -1481,7 +1483,7 @@ const Charts = ({ periodDays, showDatePicker = true }: ChartsProps) => {
                                   width: '10px',
                                   height: '10px',
                                   borderRadius: '50%',
-                                  backgroundColor: '#ffffff',
+                                  backgroundColor: 'var(--surface-base)',
                                   border: `2px solid ${colorConfig.main}`,
                                   boxShadow: `0 0 10px ${colorConfig.glow}`,
                                   animation: 'dotPulse 1.5s ease-in-out infinite'
@@ -1501,7 +1503,7 @@ const Charts = ({ periodDays, showDatePicker = true }: ChartsProps) => {
                             <span style={{
                               fontSize: isMobile ? '13px' : '14px',
                               fontWeight: 700,
-                              color: '#003142',
+                              color: 'var(--text-primary)',
                               fontVariantNumeric: 'tabular-nums'
                             }}>
                               {formatValue(displayValue)}
@@ -1533,7 +1535,7 @@ const Charts = ({ periodDays, showDatePicker = true }: ChartsProps) => {
                     <span style={{
                       fontSize: '13px',
                       fontWeight: 600,
-                      color: 'rgba(0, 49, 66, 0.6)',
+                      color: 'var(--text-tertiary)',
                       textTransform: 'uppercase',
                       letterSpacing: '0.05em'
                     }}>
@@ -1542,7 +1544,7 @@ const Charts = ({ periodDays, showDatePicker = true }: ChartsProps) => {
                     <span style={{
                       fontSize: isMobile ? '18px' : '20px',
                       fontWeight: 700,
-                      color: '#003142',
+                      color: 'var(--text-primary)',
                       fontVariantNumeric: 'tabular-nums'
                     }}>
                       {(() => {
@@ -1570,7 +1572,7 @@ const Charts = ({ periodDays, showDatePicker = true }: ChartsProps) => {
               flexDirection: 'column',
               alignItems: 'center', 
               justifyContent: 'center',
-              backgroundColor: '#E6F4F1',
+              backgroundColor: 'var(--bg-page)',
               borderRadius: '16px',
               border: '1px dashed #B8D9D1'
             }}>
@@ -1578,7 +1580,7 @@ const Charts = ({ periodDays, showDatePicker = true }: ChartsProps) => {
                 width: '48px',
                 height: '48px',
                 borderRadius: '12px',
-                backgroundColor: '#E6F4F1',
+                backgroundColor: 'var(--bg-page)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',

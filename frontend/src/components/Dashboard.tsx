@@ -3,6 +3,7 @@ import KPICards from './KPICards';
 import Charts from './Charts';
 import AdvancedCharts from './AdvancedCharts';
 import TransactionTable from './TransactionTable';
+import ThemeToggle from './ThemeToggle';
 
 type TabType = 'overview' | 'charts' | 'advanced' | 'transactions';
 
@@ -93,7 +94,7 @@ const Dashboard = () => {
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#E6F4F1' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: 'var(--bg-page)' }}>
       {/* Mobile Overlay */}
       {isMobile && isMobileSidebarOpen && (
         <div 
@@ -102,7 +103,7 @@ const Dashboard = () => {
           style={{
             position: 'fixed',
             inset: 0,
-            backgroundColor: 'rgba(0, 49, 66, 0.4)',
+            backgroundColor: 'rgba(0, 31, 42, 0.6)',
             backdropFilter: 'blur(4px)',
             WebkitBackdropFilter: 'blur(4px)',
             zIndex: 45
@@ -119,7 +120,7 @@ const Dashboard = () => {
           top: isMobile ? 0 : 16,
           height: isMobile ? '100vh' : 'calc(100vh - 32px)',
           width: isMobile ? 280 : sidebarWidth,
-          backgroundColor: '#ffffff',
+          backgroundColor: 'var(--surface-base)',
           border: 'none',
           borderRadius: isMobile ? 0 : '20px',
           display: 'flex',
@@ -136,7 +137,7 @@ const Dashboard = () => {
         {/* Logo Section */}
         <div style={{ 
           padding: isSidebarCollapsed ? '20px 16px' : '20px 20px', 
-          borderBottom: '1px solid #f1f5f9',
+          borderBottom: '1px solid var(--border-subtle)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: isSidebarCollapsed ? 'center' : 'space-between',
@@ -160,8 +161,8 @@ const Dashboard = () => {
             </div>
             {!isSidebarCollapsed && (
               <div>
-                <h1 style={{ fontSize: '16px', fontWeight: 700, color: '#003142', margin: 0, letterSpacing: '-0.02em' }}>FinanceHub</h1>
-                <p style={{ fontSize: '11px', color: 'rgba(0, 49, 66, 0.6)', margin: 0, fontWeight: 500, letterSpacing: '0.02em' }}>Analytics Platform</p>
+                <h1 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', margin: 0, letterSpacing: '-0.02em' }}>FinanceHub</h1>
+                <p style={{ fontSize: '11px', color: 'var(--text-tertiary)', margin: 0, fontWeight: 500, letterSpacing: '0.02em' }}>Analytics Platform</p>
               </div>
             )}
           </div>
@@ -172,7 +173,7 @@ const Dashboard = () => {
               style={{
                 background: 'transparent',
                 border: 'none',
-                color: 'rgba(0, 49, 66, 0.5)',
+                color: 'var(--text-muted)',
                 cursor: 'pointer',
                 padding: '8px',
                 borderRadius: '8px',
@@ -182,12 +183,12 @@ const Dashboard = () => {
                 transition: 'all 0.15s ease'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#f1f5f9';
-                e.currentTarget.style.color = '#64748b';
+                e.currentTarget.style.backgroundColor = 'var(--bg-subtle)';
+                e.currentTarget.style.color = 'var(--text-secondary)';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.backgroundColor = 'transparent';
-                e.currentTarget.style.color = '#94a3b8';
+                e.currentTarget.style.color = 'var(--text-muted)';
               }}
             >
               <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
@@ -202,7 +203,7 @@ const Dashboard = () => {
               style={{
                 background: 'transparent',
                 border: 'none',
-                color: 'rgba(0, 49, 66, 0.6)',
+                color: 'var(--text-tertiary)',
                 cursor: 'pointer',
                 padding: '8px',
                 borderRadius: '8px',
@@ -223,21 +224,21 @@ const Dashboard = () => {
             style={{
               background: 'transparent',
               border: 'none',
-              color: 'rgba(0, 49, 66, 0.5)',
+              color: 'var(--text-muted)',
               cursor: 'pointer',
               padding: '14px',
               display: 'flex',
               justifyContent: 'center',
-              borderBottom: '1px solid #f1f5f9',
+              borderBottom: '1px solid var(--border-subtle)',
               transition: 'all 0.15s ease'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#f8fafc';
+              e.currentTarget.style.backgroundColor = 'var(--bg-subtle)';
               e.currentTarget.style.color = '#64748b';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.backgroundColor = 'transparent';
-              e.currentTarget.style.color = '#94a3b8';
+              e.currentTarget.style.color = 'var(--text-muted)';
             }}
           >
             <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
@@ -253,7 +254,7 @@ const Dashboard = () => {
               padding: '0 12px', 
               fontSize: '11px', 
               fontWeight: 600, 
-              color: 'rgba(0, 49, 66, 0.5)', 
+              color: 'var(--text-muted)', 
               textTransform: 'uppercase', 
               letterSpacing: '0.06em', 
               marginBottom: '12px' 
@@ -280,22 +281,22 @@ const Dashboard = () => {
                       border: 'none',
                       cursor: 'pointer',
                       transition: 'all 0.15s ease',
-              backgroundColor: isActive ? '#E6F4F1' : 'transparent',
-              color: isActive ? '#003142' : 'rgba(0, 49, 66, 0.6)',
+              backgroundColor: isActive ? 'var(--accent-blue-light)' : 'transparent',
+              color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
                       fontWeight: 500,
                       fontSize: '14px',
                       position: 'relative'
                     }}
                     onMouseEnter={(e) => {
                       if (!isActive) {
-                        e.currentTarget.style.backgroundColor = '#E6F4F1';
-                        e.currentTarget.style.color = '#003142';
+                        e.currentTarget.style.backgroundColor = 'var(--bg-subtle)';
+                        e.currentTarget.style.color = 'var(--text-primary)';
                       }
                     }}
                     onMouseLeave={(e) => {
                       if (!isActive) {
                         e.currentTarget.style.backgroundColor = 'transparent';
-                        e.currentTarget.style.color = 'rgba(0, 49, 66, 0.6)';
+                        e.currentTarget.style.color = 'var(--text-secondary)';
                       }
                     }}
                   >
@@ -307,12 +308,12 @@ const Dashboard = () => {
                         transform: 'translateY(-50%)',
                         width: '3px',
                         height: '20px',
-                        backgroundColor: '#7FB3C8',
+                        backgroundColor: 'var(--accent-blue)',
                         borderRadius: '0 4px 4px 0'
                       }} />
                     )}
                     <span style={{ 
-                      color: isActive ? '#7FB3C8' : 'rgba(0, 49, 66, 0.5)',
+                      color: isActive ? 'var(--accent-blue)' : 'inherit',
                       display: 'flex',
                       alignItems: 'center',
                       transition: 'color 0.15s ease'
@@ -328,7 +329,7 @@ const Dashboard = () => {
         </nav>
 
         {/* Bottom Section */}
-        <div style={{ padding: isSidebarCollapsed ? '16px 12px' : '16px', borderTop: '1px solid #f1f5f9' }}>
+        <div style={{ padding: isSidebarCollapsed ? '16px 12px' : '16px', borderTop: '1px solid var(--border-subtle)' }}>
           {/* System Status */}
           {!isSidebarCollapsed && (
             <div style={{ 
@@ -336,20 +337,20 @@ const Dashboard = () => {
               alignItems: 'center', 
               justifyContent: 'space-between',
               padding: '12px 14px',
-              backgroundColor: '#D1FAE5',
+              backgroundColor: 'var(--success-light)',
               borderRadius: '10px',
               marginBottom: '12px',
-              border: '1px solid #6EE7B7'
+              border: '1px solid var(--success-border)'
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <span style={{ 
                   width: '8px', 
                   height: '8px', 
-                  backgroundColor: '#22c55e', 
+                  backgroundColor: 'var(--success)', 
                   borderRadius: '50%',
-                  boxShadow: '0 0 0 3px rgba(34, 197, 94, 0.15)'
+                  boxShadow: '0 0 0 3px rgba(5, 150, 105, 0.15)'
                 }} />
-                <span style={{ fontSize: '13px', color: '#059669', fontWeight: 500 }}>All systems operational</span>
+                <span style={{ fontSize: '13px', color: 'var(--success)', fontWeight: 500 }}>All systems operational</span>
               </div>
             </div>
           )}
@@ -363,16 +364,16 @@ const Dashboard = () => {
               gap: '12px',
               padding: isSidebarCollapsed ? '0' : '10px 12px',
               borderRadius: '10px',
-              backgroundColor: isSidebarCollapsed ? 'transparent' : '#F0F9F7',
+              backgroundColor: isSidebarCollapsed ? 'transparent' : 'var(--bg-subtle)',
               cursor: 'pointer',
               transition: 'background-color 0.15s ease',
-              border: isSidebarCollapsed ? 'none' : '1px solid #D1E8E3'
+              border: isSidebarCollapsed ? 'none' : '1px solid var(--border-subtle)'
             }}
             onMouseEnter={(e) => {
-              if (!isSidebarCollapsed) e.currentTarget.style.backgroundColor = '#f1f5f9';
+              if (!isSidebarCollapsed) e.currentTarget.style.backgroundColor = 'var(--bg-muted)';
             }}
             onMouseLeave={(e) => {
-              if (!isSidebarCollapsed) e.currentTarget.style.backgroundColor = '#f8fafc';
+              if (!isSidebarCollapsed) e.currentTarget.style.backgroundColor = 'var(--bg-subtle)';
             }}
           >
             <div style={{
@@ -393,10 +394,10 @@ const Dashboard = () => {
             {!isSidebarCollapsed && (
               <>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ fontSize: '14px', fontWeight: 600, color: '#003142', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Admin User</p>
-                  <p style={{ fontSize: '12px', color: 'rgba(0, 49, 66, 0.6)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>admin@finance.com</p>
+                  <p style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Admin User</p>
+                  <p style={{ fontSize: '12px', color: 'var(--text-tertiary)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>admin@finance.com</p>
                 </div>
-                <svg width="16" height="16" fill="none" stroke="rgba(0, 49, 66, 0.5)" strokeWidth={1.5} viewBox="0 0 24 24">
+                <svg width="16" height="16" fill="none" stroke="var(--text-muted)" strokeWidth={1.5} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 15L12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9" />
                 </svg>
               </>
@@ -425,13 +426,14 @@ const Dashboard = () => {
             left: isMobile ? 12 : 'auto',
             right: isMobile ? 12 : 'auto',
             zIndex: 40,
-            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+            backgroundColor: 'var(--surface-overlay)',
             backdropFilter: 'blur(12px)',
             WebkitBackdropFilter: 'blur(12px)',
             borderRadius: '16px',
             margin: isMobile ? 0 : '0 16px',
-            boxShadow: '0 4px 20px rgba(0, 49, 66, 0.06), 0 1px 3px rgba(0, 49, 66, 0.04)',
-            border: '1px solid rgba(255, 255, 255, 0.8)'
+            boxShadow: 'var(--shadow-card-hover)',
+            border: '1px solid var(--border-subtle)',
+            opacity: 0.95
           }}
         >
           <div style={{ padding: isMobile ? '12px 16px' : '16px 24px' }}>
@@ -444,7 +446,7 @@ const Dashboard = () => {
                     style={{
                       background: 'transparent',
                       border: 'none',
-                      color: 'rgba(0, 49, 66, 0.7)',
+                      color: 'var(--text-secondary)',
                       cursor: 'pointer',
                       padding: '8px',
                       display: 'flex',
@@ -463,14 +465,14 @@ const Dashboard = () => {
                   <h2 style={{ 
                     fontSize: isMobile ? '18px' : '20px', 
                     fontWeight: 600, 
-                    color: '#003142', 
+                    color: 'var(--text-primary)', 
                     margin: 0,
                     letterSpacing: '-0.015em'
                   }}>
                     {pageInfo[activeTab].title}
                   </h2>
                   {!isMobile && (
-                    <p style={{ fontSize: '13px', color: 'rgba(0, 49, 66, 0.6)', marginTop: '2px' }}>
+                    <p style={{ fontSize: '13px', color: 'var(--text-tertiary)', marginTop: '2px' }}>
                       {pageInfo[activeTab].subtitle}
                     </p>
                   )}
@@ -488,7 +490,7 @@ const Dashboard = () => {
                       transform: 'translateY(-50%)', 
                       width: '18px', 
                       height: '18px', 
-                      color: isSearchFocused ? '#7FB3C8' : 'rgba(0, 49, 66, 0.5)',
+                      color: isSearchFocused ? 'var(--accent-blue)' : 'var(--text-muted)',
                       transition: 'color 0.15s ease'
                     }} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
@@ -504,25 +506,28 @@ const Dashboard = () => {
                         paddingTop: '9px',
                         paddingBottom: '9px',
                         width: '200px',
-                        backgroundColor: isSearchFocused ? '#ffffff' : '#F0F9F7',
-                        border: isSearchFocused ? '1px solid #7FB3C8' : '1px solid #B8D9D1',
+                        backgroundColor: isSearchFocused ? 'var(--surface-base)' : 'var(--bg-subtle)',
+                        border: isSearchFocused ? '1px solid var(--border-focus)' : '1px solid var(--border-default)',
                         borderRadius: '10px',
                         fontSize: '14px',
                         outline: 'none',
                         transition: 'all 0.2s ease',
-                        color: '#003142',
+                        color: 'var(--text-primary)',
                         boxShadow: isSearchFocused ? '0 0 0 3px rgba(127, 179, 200, 0.2)' : 'none'
                       }}
                     />
                   </div>
                 )}
                 
+                {/* Theme Toggle */}
+                <ThemeToggle />
+                
                 {/* Notifications */}
                 <button 
                   style={{
                     padding: '9px',
-                    backgroundColor: '#F0F9F7',
-                    border: '1px solid #B8D9D1',
+                    backgroundColor: 'var(--bg-subtle)',
+                    border: '1px solid var(--border-default)',
                     borderRadius: '10px',
                     cursor: 'pointer',
                     display: 'flex',
@@ -532,15 +537,15 @@ const Dashboard = () => {
                     position: 'relative'
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = '#E6F4F1';
-                    e.currentTarget.style.borderColor = '#9FC4BB';
+                    e.currentTarget.style.backgroundColor = 'var(--bg-page)';
+                    e.currentTarget.style.borderColor = 'var(--border-strong)';
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = '#F0F9F7';
-                    e.currentTarget.style.borderColor = '#B8D9D1';
+                    e.currentTarget.style.backgroundColor = 'var(--bg-subtle)';
+                    e.currentTarget.style.borderColor = 'var(--border-default)';
                   }}
                 >
-                  <svg width="18" height="18" fill="none" stroke="rgba(0, 49, 66, 0.6)" strokeWidth={1.5} viewBox="0 0 24 24">
+                  <svg width="18" height="18" fill="none" stroke="var(--text-tertiary)" strokeWidth={1.5} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
                   </svg>
                   {/* Notification dot */}
@@ -591,7 +596,7 @@ const Dashboard = () => {
             {isMobile && (
               <p style={{ 
                 fontSize: '12px', 
-                color: 'rgba(0, 49, 66, 0.6)', 
+                color: 'var(--text-tertiary)', 
                 margin: '8px 0 0 0',
                 display: 'flex',
                 alignItems: 'center',
@@ -628,7 +633,7 @@ const Dashboard = () => {
                   alignItems: 'center',
                   gap: '4px',
                   padding: '4px',
-                  backgroundColor: '#F0F9F7',
+                  backgroundColor: 'var(--bg-subtle)',
                   borderRadius: '12px',
                   flexWrap: 'nowrap',
                   overflowX: 'auto'
@@ -647,20 +652,20 @@ const Dashboard = () => {
                           border: 'none',
                           cursor: 'pointer',
                           transition: 'all 0.15s ease',
-                          backgroundColor: isActive ? '#ffffff' : 'transparent',
-                          color: isActive ? '#003142' : 'rgba(0, 49, 66, 0.6)',
+                          backgroundColor: isActive ? 'var(--surface-base)' : 'transparent',
+                          color: isActive ? 'var(--text-primary)' : 'var(--text-tertiary)',
                           boxShadow: isActive ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
                           whiteSpace: 'nowrap',
                           flexShrink: 0
                         }}
                         onMouseEnter={(e) => {
                           if (!isActive) {
-                            e.currentTarget.style.color = '#003142';
+                            e.currentTarget.style.color = 'var(--text-primary)';
                           }
                         }}
                         onMouseLeave={(e) => {
                           if (!isActive) {
-                            e.currentTarget.style.color = 'rgba(0, 49, 66, 0.6)';
+                            e.currentTarget.style.color = 'var(--text-tertiary)';
                           }
                         }}
                       >
@@ -682,18 +687,18 @@ const Dashboard = () => {
                         fontSize: '13px',
                         fontWeight: 500,
                         borderRadius: '10px',
-                        border: '1px solid #B8D9D1',
-                        backgroundColor: '#ffffff',
-                        color: 'rgba(0, 49, 66, 0.7)',
+                        border: '1px solid var(--border-default)',
+                        backgroundColor: 'var(--surface-base)',
+                        color: 'var(--text-secondary)',
                         cursor: 'pointer',
                         transition: 'all 0.15s ease'
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = '#F0F9F7';
+                        e.currentTarget.style.backgroundColor = 'var(--bg-subtle)';
                         e.currentTarget.style.borderColor = '#9FC4BB';
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = '#ffffff';
+                        e.currentTarget.style.backgroundColor = 'var(--surface-base)';
                         e.currentTarget.style.borderColor = '#B8D9D1';
                       }}
                     >
@@ -713,7 +718,7 @@ const Dashboard = () => {
                         borderRadius: '10px',
                         border: 'none',
                         background: 'linear-gradient(135deg, #003142 0%, #7FB3C8 100%)',
-                        color: '#ffffff',
+                        color: 'var(--text-inverse)',
                         cursor: 'pointer',
                         transition: 'all 0.2s ease',
                         boxShadow: '0 2px 8px rgba(79, 70, 229, 0.25)'
@@ -770,18 +775,19 @@ const Dashboard = () => {
           bottom: 12,
           left: 12,
           right: 12,
-          backgroundColor: 'rgba(255, 255, 255, 0.95)',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
-          borderRadius: '16px',
-          zIndex: 50,
-          display: 'flex',
-          justifyContent: 'space-around',
-          alignItems: 'center',
-          padding: '8px 0',
-          paddingBottom: 'max(8px, env(safe-area-inset-bottom))',
-          boxShadow: '0 4px 20px rgba(0, 49, 66, 0.08), 0 -2px 10px rgba(0, 49, 66, 0.04)',
-          border: '1px solid rgba(255, 255, 255, 0.8)'
+                  backgroundColor: 'var(--surface-overlay)',
+                  backdropFilter: 'blur(12px)',
+                  WebkitBackdropFilter: 'blur(12px)',
+                  borderRadius: '16px',
+                  zIndex: 50,
+                  display: 'flex',
+                  justifyContent: 'space-around',
+                  alignItems: 'center',
+                  padding: '8px 0',
+                  paddingBottom: 'max(8px, env(safe-area-inset-bottom))',
+                  boxShadow: 'var(--shadow-card-hover)',
+                  border: '1px solid var(--border-subtle)',
+                  opacity: 0.95
         }}>
           {navItems.map((item) => {
             const isActive = activeTab === item.id;
@@ -798,14 +804,14 @@ const Dashboard = () => {
                   background: 'none',
                   border: 'none',
                   cursor: 'pointer',
-                  color: isActive ? '#7FB3C8' : 'rgba(0, 49, 66, 0.5)',
+                  color: isActive ? 'var(--accent-blue)' : 'var(--text-muted)',
                   transition: 'color 0.15s ease'
                 }}
               >
                 <div style={{
                   padding: '6px',
                   borderRadius: '10px',
-                  backgroundColor: isActive ? '#E6F4F1' : 'transparent',
+                  backgroundColor: isActive ? 'var(--accent-blue-light)' : 'transparent',
                   transition: 'background-color 0.15s ease'
                 }}>
                   {item.icon}

@@ -83,34 +83,34 @@ const DESIGN_TOKENS = {
 // ==================== STATUS CONFIGURATION ====================
 const STATUS_CONFIG = {
   SUCCESS: {
-    bg: DESIGN_TOKENS.colors.successLight,
-    text: DESIGN_TOKENS.colors.success,
-    border: DESIGN_TOKENS.colors.successSoft,
+    bg: 'var(--success-light)',
+    text: 'var(--success)',
+    border: 'var(--success-soft)',
     dot: '#10b981',
     glow: 'rgba(16, 185, 129, 0.2)',
     label: 'Success'
   },
   FAILED: {
-    bg: DESIGN_TOKENS.colors.errorLight,
-    text: DESIGN_TOKENS.colors.error,
-    border: DESIGN_TOKENS.colors.errorSoft,
+    bg: 'var(--error-light)',
+    text: 'var(--error)',
+    border: 'var(--error-soft)',
     dot: '#ef4444',
     glow: 'rgba(239, 68, 68, 0.2)',
     label: 'Failed'
   },
   PENDING: {
-    bg: DESIGN_TOKENS.colors.warningLight,
-    text: DESIGN_TOKENS.colors.warning,
-    border: DESIGN_TOKENS.colors.warningSoft,
+    bg: 'var(--warning-light)',
+    text: 'var(--warning)',
+    border: 'var(--warning-soft)',
     dot: '#f59e0b',
     glow: 'rgba(245, 158, 11, 0.2)',
     label: 'Pending'
   },
   DEFAULT: {
-    bg: DESIGN_TOKENS.colors.neutral50,
-    text: DESIGN_TOKENS.colors.neutral600,
-    border: DESIGN_TOKENS.colors.neutral200,
-    dot: DESIGN_TOKENS.colors.neutral500,
+    bg: 'var(--bg-subtle)',
+    text: 'var(--text-secondary)',
+    border: 'var(--border-subtle)',
+    dot: 'var(--text-muted)',
     glow: 'rgba(100, 116, 139, 0.15)',
     label: 'All'
   }
@@ -258,10 +258,10 @@ const TransactionTable = () => {
 
   // ==================== PREMIUM STYLES ====================
   const cardStyle: React.CSSProperties = {
-    backgroundColor: '#ffffff',
+    backgroundColor: 'var(--surface-base)',
     borderRadius: DESIGN_TOKENS.radius['2xl'],
-    border: `1px solid ${DESIGN_TOKENS.colors.neutral100}`,
-    boxShadow: DESIGN_TOKENS.shadow.card,
+    border: '1px solid var(--border-subtle)',
+    boxShadow: 'var(--shadow-card)',
     transition: `box-shadow ${DESIGN_TOKENS.transition.normal}`,
   };
 
@@ -269,13 +269,13 @@ const TransactionTable = () => {
     width: '100%',
     height: '46px',
     padding: '0 14px 0 42px',
-    backgroundColor: '#ffffff',
-    border: `1.5px solid ${isFocused ? '#7FB3C8' : DESIGN_TOKENS.colors.neutral200}`,
+    backgroundColor: 'var(--surface-base)',
+    border: `1.5px solid ${isFocused ? 'var(--border-focus)' : 'var(--border-default)'}`,
     borderRadius: DESIGN_TOKENS.radius.lg,
     fontSize: DESIGN_TOKENS.fontSize.base,
     fontWeight: 450,
     outline: 'none',
-    color: DESIGN_TOKENS.colors.neutral900,
+    color: 'var(--text-primary)',
     transition: `all ${DESIGN_TOKENS.transition.fast}`,
     boxShadow: isFocused ? '0 0 0 3px rgba(127, 179, 200, 0.2)' : 'none',
   });
@@ -290,7 +290,7 @@ const TransactionTable = () => {
     position: 'absolute',
     left: '14px',
     pointerEvents: 'none',
-    color: DESIGN_TOKENS.colors.neutral400,
+    color: 'var(--text-muted)',
     transition: `color ${DESIGN_TOKENS.transition.fast}`,
   };
 
@@ -325,28 +325,28 @@ const TransactionTable = () => {
       <div style={{
         width: '80px',
         height: '80px',
-        background: `linear-gradient(135deg, ${DESIGN_TOKENS.colors.neutral50} 0%, ${DESIGN_TOKENS.colors.neutral100} 100%)`,
+        background: `linear-gradient(135deg, var(--bg-page) 0%, var(--bg-subtle) 100%)`,
         borderRadius: '20px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: '24px',
       }}>
-        <svg width="36" height="36" fill="none" stroke={DESIGN_TOKENS.colors.neutral400} strokeWidth={1.5} viewBox="0 0 24 24">
+        <svg width="36" height="36" fill="none" stroke="var(--text-muted)" strokeWidth={1.5} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
         </svg>
       </div>
       <h3 style={{
         fontSize: DESIGN_TOKENS.fontSize.xl,
         fontWeight: 600,
-        color: DESIGN_TOKENS.colors.neutral900,
+        color: 'var(--text-primary)',
         margin: '0 0 8px 0',
       }}>
         No transactions found
       </h3>
       <p style={{
         fontSize: DESIGN_TOKENS.fontSize.base,
-        color: DESIGN_TOKENS.colors.neutral500,
+        color: 'var(--text-muted)',
         margin: '0 0 24px 0',
         maxWidth: '320px',
         lineHeight: 1.5,
@@ -361,7 +361,7 @@ const TransactionTable = () => {
             alignItems: 'center',
             gap: '8px',
             padding: '12px 24px',
-            backgroundColor: DESIGN_TOKENS.colors.primary,
+            backgroundColor: 'var(--accent-indigo)',
             color: '#ffffff',
             border: 'none',
             borderRadius: DESIGN_TOKENS.radius.lg,
@@ -409,7 +409,7 @@ const TransactionTable = () => {
         <div style={{ ...cardStyle, overflow: 'hidden' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr style={{ backgroundColor: DESIGN_TOKENS.colors.neutral50 }}>
+              <tr style={{ backgroundColor: 'var(--bg-subtle)' }}>
                 {['Transaction', 'Customer', 'Amount', 'Status', 'Payment', 'Date'].map(col => (
                   <th key={col} style={{ padding: '16px 24px', textAlign: 'left' }}>
                     <div className="skeleton" style={{ height: '12px', width: '80px', borderRadius: '4px' }} />
@@ -432,29 +432,29 @@ const TransactionTable = () => {
       <div style={{ 
         ...cardStyle, 
         padding: '32px', 
-        border: `1px solid ${DESIGN_TOKENS.colors.errorSoft}`,
-        background: `linear-gradient(135deg, #ffffff 0%, ${DESIGN_TOKENS.colors.errorLight} 100%)`,
+        border: `1px solid var(--error-soft)`,
+        background: `linear-gradient(135deg, var(--surface-base) 0%, var(--error-light) 100%)`,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
           <div style={{ 
             width: '56px', 
             height: '56px', 
-            background: `linear-gradient(135deg, ${DESIGN_TOKENS.colors.errorLight} 0%, ${DESIGN_TOKENS.colors.errorSoft} 100%)`, 
+            background: `linear-gradient(135deg, var(--error-light) 0%, var(--error-soft) 100%)`, 
             borderRadius: DESIGN_TOKENS.radius.xl, 
             display: 'flex', 
             alignItems: 'center', 
             justifyContent: 'center',
             flexShrink: 0,
           }}>
-            <svg width="28" height="28" fill="none" stroke={DESIGN_TOKENS.colors.error} strokeWidth={1.5} viewBox="0 0 24 24">
+            <svg width="28" height="28" fill="none" stroke="var(--error)" strokeWidth={1.5} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
             </svg>
           </div>
           <div>
-            <p style={{ fontSize: DESIGN_TOKENS.fontSize.lg, fontWeight: 600, color: DESIGN_TOKENS.colors.neutral900, margin: 0 }}>
+            <p style={{ fontSize: DESIGN_TOKENS.fontSize.lg, fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>
               Error loading transactions
             </p>
-            <p style={{ fontSize: DESIGN_TOKENS.fontSize.base, color: DESIGN_TOKENS.colors.neutral500, margin: '6px 0 0 0' }}>
+            <p style={{ fontSize: DESIGN_TOKENS.fontSize.base, color: 'var(--text-tertiary)', margin: '6px 0 0 0' }}>
               {error}. Please try again.
             </p>
           </div>
@@ -502,9 +502,9 @@ const TransactionTable = () => {
       style={{
         padding: '10px 18px',
         borderRadius: DESIGN_TOKENS.radius.full,
-        border: `1.5px solid ${isActive ? config.text : DESIGN_TOKENS.colors.neutral200}`,
-        backgroundColor: isActive ? config.bg : '#ffffff',
-        color: isActive ? config.text : DESIGN_TOKENS.colors.neutral500,
+        border: `1.5px solid ${isActive ? config.text : 'var(--border-default)'}`,
+        backgroundColor: isActive ? config.bg : 'var(--surface-base)',
+        color: isActive ? config.text : 'var(--text-secondary)',
         fontSize: DESIGN_TOKENS.fontSize.md,
         fontWeight: 550,
         cursor: 'pointer',
@@ -517,14 +517,16 @@ const TransactionTable = () => {
       }}
       onMouseEnter={(e) => {
         if (!isActive) {
-          e.currentTarget.style.backgroundColor = DESIGN_TOKENS.colors.neutral50;
-          e.currentTarget.style.borderColor = DESIGN_TOKENS.colors.neutral300;
+          e.currentTarget.style.backgroundColor = 'var(--bg-subtle)';
+          e.currentTarget.style.borderColor = 'var(--border-strong)';
+          e.currentTarget.style.color = 'var(--text-primary)';
         }
       }}
       onMouseLeave={(e) => {
         if (!isActive) {
-          e.currentTarget.style.backgroundColor = '#ffffff';
-          e.currentTarget.style.borderColor = DESIGN_TOKENS.colors.neutral200;
+          e.currentTarget.style.backgroundColor = 'var(--surface-base)';
+          e.currentTarget.style.borderColor = 'var(--border-default)';
+          e.currentTarget.style.color = 'var(--text-secondary)';
         }
       }}
     >
@@ -549,11 +551,11 @@ const TransactionTable = () => {
       textAlign: 'left',
       fontSize: DESIGN_TOKENS.fontSize.xs,
       fontWeight: 600,
-      color: DESIGN_TOKENS.colors.neutral500,
+      color: 'var(--text-muted)',
       textTransform: 'uppercase',
       letterSpacing: '0.06em',
-      borderBottom: `1px solid ${DESIGN_TOKENS.colors.neutral100}`,
-      backgroundColor: DESIGN_TOKENS.colors.neutral50,
+      borderBottom: '1px solid var(--border-subtle)',
+      backgroundColor: 'var(--bg-subtle)',
       whiteSpace: 'nowrap',
     }}>
       {children}
@@ -567,9 +569,9 @@ const TransactionTable = () => {
         ...cardStyle, 
         marginBottom: '24px',
         overflow: 'hidden',
-        backgroundColor: isFilterExpanded ? '#ffffff' : 'rgba(255, 255, 255, 0.95)',
-        border: isFilterExpanded ? `1px solid ${DESIGN_TOKENS.colors.neutral100}` : 'none',
-        boxShadow: isFilterExpanded ? DESIGN_TOKENS.shadow.card : '0 2px 12px rgba(0, 49, 66, 0.06)',
+        backgroundColor: isFilterExpanded ? 'var(--surface-base)' : 'var(--surface-overlay)',
+        border: isFilterExpanded ? '1px solid var(--border-subtle)' : 'none',
+        boxShadow: isFilterExpanded ? 'var(--shadow-card)' : 'var(--shadow-sm)',
         transition: `all ${DESIGN_TOKENS.transition.normal}`,
       }}>
         {/* Filter Header */}
@@ -582,9 +584,9 @@ const TransactionTable = () => {
             justifyContent: 'space-between',
             cursor: 'pointer',
             background: isFilterExpanded 
-              ? `linear-gradient(135deg, ${DESIGN_TOKENS.colors.primarySoft} 0%, #D1E8E3 50%, ${DESIGN_TOKENS.colors.primarySoft} 100%)`
+              ? `linear-gradient(135deg, var(--bg-subtle) 0%, var(--bg-muted) 50%, var(--bg-subtle) 100%)`
               : 'transparent',
-            borderBottom: isFilterExpanded ? `1px solid ${DESIGN_TOKENS.colors.primarySoft}` : 'none',
+            borderBottom: isFilterExpanded ? '1px solid var(--border-subtle)' : 'none',
             transition: `all ${DESIGN_TOKENS.transition.fast}`,
           }}
         >
@@ -593,14 +595,14 @@ const TransactionTable = () => {
               width: '48px',
               height: '48px',
               background: isFilterExpanded 
-                ? `linear-gradient(135deg, #ffffff 0%, ${DESIGN_TOKENS.colors.primaryLight} 100%)`
-                : '#E6F4F1',
+                ? `linear-gradient(135deg, var(--surface-base) 0%, var(--bg-subtle) 100%)`
+                : 'var(--bg-subtle)',
               borderRadius: DESIGN_TOKENS.radius.lg,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               boxShadow: isFilterExpanded ? '0 2px 8px rgba(0, 49, 66, 0.15)' : 'none',
-              border: isFilterExpanded ? `1px solid ${DESIGN_TOKENS.colors.primarySoft}` : 'none',
+              border: isFilterExpanded ? '1px solid var(--border-subtle)' : 'none',
               transition: `all ${DESIGN_TOKENS.transition.fast}`,
             }}>
               <svg width="22" height="22" fill="none" stroke="#7FB3C8" strokeWidth={1.75} viewBox="0 0 24 24">
@@ -617,7 +619,7 @@ const TransactionTable = () => {
                 <h3 style={{ 
                   fontSize: DESIGN_TOKENS.fontSize['2xl'], 
                   fontWeight: 700, 
-                  color: DESIGN_TOKENS.colors.neutral900, 
+                  color: 'var(--text-primary)', 
                   margin: 0, 
                   letterSpacing: '-0.02em',
                 }}>
@@ -625,8 +627,8 @@ const TransactionTable = () => {
                 </h3>
                 {activeFilterCount > 0 && (
                   <span style={{
-                    background: `linear-gradient(135deg, ${DESIGN_TOKENS.colors.primary} 0%, ${DESIGN_TOKENS.colors.primaryHover} 100%)`,
-                    color: '#ffffff',
+                    background: `linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-blue-hover) 100%)`,
+                    color: 'var(--text-inverse)',
                     fontSize: DESIGN_TOKENS.fontSize.xs,
                     fontWeight: 700,
                     padding: '4px 10px',
@@ -641,7 +643,7 @@ const TransactionTable = () => {
               </div>
               <p style={{ 
                 fontSize: DESIGN_TOKENS.fontSize.md, 
-                color: DESIGN_TOKENS.colors.neutral600, 
+                color: 'var(--text-tertiary)', 
                 margin: '4px 0 0 0',
                 fontWeight: 450,
               }}>
@@ -659,9 +661,9 @@ const TransactionTable = () => {
                 }}
                 style={{
                   padding: '10px 18px',
-                  backgroundColor: '#ffffff',
-                  color: DESIGN_TOKENS.colors.neutral600,
-                  border: `1.5px solid ${isFilterExpanded ? DESIGN_TOKENS.colors.neutral200 : DESIGN_TOKENS.colors.neutral300}`,
+                  backgroundColor: 'var(--surface-base)',
+                  color: 'var(--text-secondary)',
+                  border: `1.5px solid var(--border-default)`,
                   borderRadius: DESIGN_TOKENS.radius.lg,
                   fontSize: DESIGN_TOKENS.fontSize.md,
                   fontWeight: 550,
@@ -672,12 +674,12 @@ const TransactionTable = () => {
                   transition: `all ${DESIGN_TOKENS.transition.fast}`,
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = isFilterExpanded ? DESIGN_TOKENS.colors.neutral50 : '#ffffff';
-                  e.currentTarget.style.borderColor = DESIGN_TOKENS.colors.neutral300;
+                  e.currentTarget.style.backgroundColor = 'var(--bg-subtle)';
+                  e.currentTarget.style.borderColor = 'var(--border-strong)';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = '#ffffff';
-                  e.currentTarget.style.borderColor = isFilterExpanded ? DESIGN_TOKENS.colors.neutral200 : DESIGN_TOKENS.colors.neutral300;
+                  e.currentTarget.style.backgroundColor = 'var(--surface-base)';
+                  e.currentTarget.style.borderColor = 'var(--border-default)';
                 }}
               >
                 <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
@@ -689,17 +691,17 @@ const TransactionTable = () => {
             <div style={{
               width: '36px',
               height: '36px',
-              backgroundColor: isFilterExpanded ? '#ffffff' : '#E6F4F1',
+              backgroundColor: isFilterExpanded ? 'var(--surface-base)' : 'var(--bg-page)',
               borderRadius: DESIGN_TOKENS.radius.md,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               transition: `transform ${DESIGN_TOKENS.transition.normal}, all ${DESIGN_TOKENS.transition.fast}`,
               transform: isFilterExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
-              border: isFilterExpanded ? `1.5px solid ${DESIGN_TOKENS.colors.neutral200}` : 'none',
+              border: isFilterExpanded ? '1.5px solid var(--border-default)' : 'none',
               boxShadow: isFilterExpanded ? DESIGN_TOKENS.shadow.sm : 'none',
             }}>
-              <svg width="18" height="18" fill="none" stroke={DESIGN_TOKENS.colors.neutral500} strokeWidth={2} viewBox="0 0 24 24">
+              <svg width="18" height="18" fill="none" stroke="var(--text-muted)" strokeWidth={2} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
               </svg>
             </div>
@@ -726,12 +728,12 @@ const TransactionTable = () => {
                     alignItems: 'center',
                     gap: '8px',
                     padding: '8px 14px',
-                    backgroundColor: '#ffffff',
-                    color: DESIGN_TOKENS.colors.primary,
+                    backgroundColor: 'var(--surface-base)',
+                    color: 'var(--accent-blue)',
                     fontSize: DESIGN_TOKENS.fontSize.sm,
                     fontWeight: 550,
                     borderRadius: DESIGN_TOKENS.radius.full,
-                    border: `1px solid ${DESIGN_TOKENS.colors.neutral200}`,
+                    border: '1px solid var(--border-default)',
                     transition: `all ${DESIGN_TOKENS.transition.fast}`,
                   }}
                 >
@@ -748,7 +750,7 @@ const TransactionTable = () => {
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
-                      color: DESIGN_TOKENS.colors.primary,
+                      color: 'var(--accent-blue)',
                       opacity: 0.6,
                       transition: `opacity ${DESIGN_TOKENS.transition.fast}`,
                     }}
@@ -773,7 +775,7 @@ const TransactionTable = () => {
               <p style={{ 
                 fontSize: DESIGN_TOKENS.fontSize.xs, 
                 fontWeight: 650, 
-                color: DESIGN_TOKENS.colors.neutral500, 
+                color: 'var(--text-muted)', 
                 textTransform: 'uppercase', 
                 letterSpacing: '0.08em', 
                 marginBottom: '14px',
@@ -811,7 +813,7 @@ const TransactionTable = () => {
             {/* Subtle Divider */}
             <div style={{ 
               height: '1px', 
-              background: `linear-gradient(to right, transparent, ${DESIGN_TOKENS.colors.neutral200}, transparent)`,
+              background: `linear-gradient(to right, transparent, var(--border-subtle), transparent)`,
               margin: '24px 0',
             }} />
 
@@ -829,7 +831,7 @@ const TransactionTable = () => {
                   gap: '8px', 
                   fontSize: DESIGN_TOKENS.fontSize.md, 
                   fontWeight: 550, 
-                  color: DESIGN_TOKENS.colors.neutral700, 
+                  color: 'var(--text-secondary)', 
                   marginBottom: '10px',
                 }}>
                   Email Search
@@ -837,7 +839,7 @@ const TransactionTable = () => {
                 <div style={inputWrapperStyle}>
                   <span style={{
                     ...inputIconStyle,
-                    color: focusedInput === 'email' ? DESIGN_TOKENS.colors.primary : DESIGN_TOKENS.colors.neutral400,
+                    color: focusedInput === 'email' ? 'var(--accent-blue)' : 'var(--text-muted)',
                   }}>
                     <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
@@ -864,7 +866,7 @@ const TransactionTable = () => {
                   gap: '8px', 
                   fontSize: DESIGN_TOKENS.fontSize.md, 
                   fontWeight: 550, 
-                  color: DESIGN_TOKENS.colors.neutral700, 
+                  color: 'var(--text-secondary)', 
                   marginBottom: '10px',
                 }}>
                   Payment Method
@@ -872,7 +874,7 @@ const TransactionTable = () => {
                 <div style={inputWrapperStyle}>
                   <span style={{
                     ...inputIconStyle,
-                    color: focusedInput === 'payment' ? '#7FB3C8' : DESIGN_TOKENS.colors.neutral400,
+                    color: focusedInput === 'payment' ? 'var(--accent-blue)' : 'var(--text-muted)',
                   }}>
                     <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
@@ -910,7 +912,7 @@ const TransactionTable = () => {
                   gap: '8px', 
                   fontSize: DESIGN_TOKENS.fontSize.md, 
                   fontWeight: 550, 
-                  color: DESIGN_TOKENS.colors.neutral700, 
+                  color: 'var(--text-secondary)', 
                   marginBottom: '10px',
                 }}>
                   Amount Range
@@ -919,7 +921,7 @@ const TransactionTable = () => {
                   <div style={{ ...inputWrapperStyle, flex: 1 }}>
                     <span style={{
                       ...inputIconStyle,
-                      color: focusedInput === 'minAmount' ? '#7FB3C8' : DESIGN_TOKENS.colors.neutral400,
+                      color: focusedInput === 'minAmount' ? 'var(--accent-blue)' : 'var(--text-muted)',
                       fontWeight: 600,
                       fontSize: DESIGN_TOKENS.fontSize.lg,
                     }}>
@@ -940,14 +942,14 @@ const TransactionTable = () => {
                     />
                   </div>
                   <span style={{ 
-                    color: DESIGN_TOKENS.colors.neutral400, 
+                    color: 'var(--text-muted)', 
                     fontSize: DESIGN_TOKENS.fontSize.lg,
                     fontWeight: 500,
                   }}>–</span>
                   <div style={{ ...inputWrapperStyle, flex: 1 }}>
                     <span style={{
                       ...inputIconStyle,
-                      color: focusedInput === 'maxAmount' ? '#7FB3C8' : DESIGN_TOKENS.colors.neutral400,
+                      color: focusedInput === 'maxAmount' ? 'var(--accent-blue)' : 'var(--text-muted)',
                       fontWeight: 600,
                       fontSize: DESIGN_TOKENS.fontSize.lg,
                     }}>
@@ -979,7 +981,7 @@ const TransactionTable = () => {
                 gap: '8px', 
                 fontSize: DESIGN_TOKENS.fontSize.md, 
                 fontWeight: 550, 
-                color: DESIGN_TOKENS.colors.neutral700, 
+                color: 'var(--text-secondary)', 
                 marginBottom: '10px',
               }}>
                 Date Range
@@ -993,7 +995,7 @@ const TransactionTable = () => {
                 <div style={{ ...inputWrapperStyle, flex: 1, width: isMobile ? '100%' : 'auto' }}>
                   <span style={{
                     ...inputIconStyle,
-                    color: focusedInput === 'startDate' ? '#7FB3C8' : DESIGN_TOKENS.colors.neutral400,
+                    color: focusedInput === 'startDate' ? 'var(--accent-blue)' : 'var(--text-muted)',
                   }}>
                     <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
@@ -1009,7 +1011,7 @@ const TransactionTable = () => {
                   />
                 </div>
                 <span style={{ 
-                  color: DESIGN_TOKENS.colors.neutral400, 
+                  color: 'var(--text-muted)', 
                   fontSize: DESIGN_TOKENS.fontSize.md,
                   fontWeight: 500,
                   display: isMobile ? 'none' : 'block',
@@ -1017,7 +1019,7 @@ const TransactionTable = () => {
                 <div style={{ ...inputWrapperStyle, flex: 1, width: isMobile ? '100%' : 'auto' }}>
                   <span style={{
                     ...inputIconStyle,
-                    color: focusedInput === 'endDate' ? '#7FB3C8' : DESIGN_TOKENS.colors.neutral400,
+                    color: focusedInput === 'endDate' ? 'var(--accent-blue)' : 'var(--text-muted)',
                   }}>
                     <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
@@ -1042,15 +1044,15 @@ const TransactionTable = () => {
               gap: '12px', 
               marginTop: '28px',
               paddingTop: '24px',
-              borderTop: `1px solid ${DESIGN_TOKENS.colors.neutral100}`,
+              borderTop: '1px solid var(--border-subtle)',
             }}>
               <button
                 onClick={clearFilters}
                 style={{
                   padding: '12px 24px',
-                  backgroundColor: 'transparent',
-                  color: DESIGN_TOKENS.colors.neutral600,
-                  border: `1.5px solid ${DESIGN_TOKENS.colors.neutral200}`,
+                  backgroundColor: 'var(--surface-base)',
+                  color: 'var(--text-secondary)',
+                  border: '1.5px solid var(--border-default)',
                   borderRadius: DESIGN_TOKENS.radius.lg,
                   fontSize: DESIGN_TOKENS.fontSize.base,
                   fontWeight: 550,
@@ -1061,12 +1063,14 @@ const TransactionTable = () => {
                   transition: `all ${DESIGN_TOKENS.transition.fast}`,
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = DESIGN_TOKENS.colors.neutral50;
-                  e.currentTarget.style.borderColor = DESIGN_TOKENS.colors.neutral300;
+                  e.currentTarget.style.backgroundColor = 'var(--bg-subtle)';
+                  e.currentTarget.style.borderColor = 'var(--border-strong)';
+                  e.currentTarget.style.color = 'var(--text-primary)';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'transparent';
-                  e.currentTarget.style.borderColor = DESIGN_TOKENS.colors.neutral200;
+                  e.currentTarget.style.backgroundColor = 'var(--surface-base)';
+                  e.currentTarget.style.borderColor = 'var(--border-default)';
+                  e.currentTarget.style.color = 'var(--text-secondary)';
                 }}
               >
                 <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -1080,9 +1084,9 @@ const TransactionTable = () => {
                 style={{
                   padding: '12px 28px',
                   background: hasUnappliedChanges 
-                    ? `linear-gradient(135deg, ${DESIGN_TOKENS.colors.primary} 0%, ${DESIGN_TOKENS.colors.primaryHover} 100%)`
-                    : DESIGN_TOKENS.colors.neutral200,
-                  color: hasUnappliedChanges ? '#ffffff' : DESIGN_TOKENS.colors.neutral500,
+                    ? `linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-blue-hover) 100%)`
+                    : 'var(--bg-subtle)',
+                  color: hasUnappliedChanges ? 'var(--text-inverse)' : 'var(--text-muted)',
                   border: 'none',
                   borderRadius: DESIGN_TOKENS.radius.lg,
                   fontSize: DESIGN_TOKENS.fontSize.base,
@@ -1091,7 +1095,7 @@ const TransactionTable = () => {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
-                  boxShadow: hasUnappliedChanges ? DESIGN_TOKENS.shadow.button : 'none',
+                  boxShadow: hasUnappliedChanges ? 'var(--shadow-md)' : 'none',
                   transition: `all ${DESIGN_TOKENS.transition.fast}`,
                   opacity: isApplying ? 0.8 : 1,
                 }}
@@ -1148,11 +1152,11 @@ const TransactionTable = () => {
                         <tr 
                           key={transaction.id} 
                           style={{ 
-                            borderBottom: index === (data?.transactions.length ?? 0) - 1 ? 'none' : `1px solid ${DESIGN_TOKENS.colors.neutral100}`,
+                            borderBottom: index === (data?.transactions.length ?? 0) - 1 ? 'none' : '1px solid var(--border-subtle)',
                             backgroundColor: isHovered 
-                              ? DESIGN_TOKENS.colors.neutral50 
+                              ? 'var(--bg-subtle)' 
                               : isEven 
-                                ? 'rgba(248, 250, 252, 0.5)' 
+                                ? 'var(--bg-subtle)' 
                                 : 'transparent',
                             transition: `background-color ${DESIGN_TOKENS.transition.fast}`,
                             cursor: 'pointer',
@@ -1165,7 +1169,7 @@ const TransactionTable = () => {
                               <div style={{ 
                                 width: '44px', 
                                 height: '44px', 
-                                background: `linear-gradient(135deg, ${DESIGN_TOKENS.colors.primaryLight} 0%, #D1E8E3 100%)`,
+                                background: `linear-gradient(135deg, var(--bg-subtle) 0%, var(--bg-muted) 100%)`,
                                 borderRadius: DESIGN_TOKENS.radius.lg, 
                                 display: 'flex', 
                                 alignItems: 'center', 
@@ -1174,7 +1178,7 @@ const TransactionTable = () => {
                                 transition: `transform ${DESIGN_TOKENS.transition.fast}`,
                                 transform: isHovered ? 'scale(1.05)' : 'scale(1)',
                               }}>
-                                <svg width="20" height="20" fill="none" stroke={DESIGN_TOKENS.colors.primary} strokeWidth={1.75} viewBox="0 0 24 24">
+                                <svg width="20" height="20" fill="none" stroke="var(--accent-blue)" strokeWidth={1.75} viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z" />
                                 </svg>
                               </div>
@@ -1182,7 +1186,7 @@ const TransactionTable = () => {
                                 <p style={{ 
                                   fontSize: DESIGN_TOKENS.fontSize.base, 
                                   fontWeight: 650, 
-                                  color: DESIGN_TOKENS.colors.neutral900, 
+                                  color: 'var(--text-primary)', 
                                   margin: 0,
                                   fontVariantNumeric: 'tabular-nums',
                                 }}>
@@ -1190,7 +1194,7 @@ const TransactionTable = () => {
                                 </p>
                                 <p style={{ 
                                   fontSize: DESIGN_TOKENS.fontSize.sm, 
-                                  color: DESIGN_TOKENS.colors.neutral500, 
+                                  color: 'var(--text-muted)', 
                                   margin: '3px 0 0 0',
                                   fontWeight: 450,
                                 }}>
@@ -1203,14 +1207,14 @@ const TransactionTable = () => {
                             <p style={{ 
                               fontSize: DESIGN_TOKENS.fontSize.base, 
                               fontWeight: 600, 
-                              color: DESIGN_TOKENS.colors.neutral900, 
+                              color: 'var(--text-primary)', 
                               margin: 0,
                             }}>
                               {transaction.userName}
                             </p>
                             <p style={{ 
                               fontSize: DESIGN_TOKENS.fontSize.sm, 
-                              color: DESIGN_TOKENS.colors.neutral500, 
+                              color: 'var(--text-muted)', 
                               margin: '3px 0 0 0',
                               fontWeight: 450,
                             }}>
@@ -1221,7 +1225,7 @@ const TransactionTable = () => {
                             <p style={{ 
                               fontSize: DESIGN_TOKENS.fontSize.lg, 
                               fontWeight: 700, 
-                              color: DESIGN_TOKENS.colors.neutral900, 
+                              color: 'var(--text-primary)', 
                               margin: 0,
                               fontVariantNumeric: 'tabular-nums',
                               letterSpacing: '-0.01em',
@@ -1258,7 +1262,7 @@ const TransactionTable = () => {
                             <p style={{ 
                               fontSize: DESIGN_TOKENS.fontSize.base, 
                               fontWeight: 550, 
-                              color: DESIGN_TOKENS.colors.neutral900, 
+                              color: 'var(--text-primary)', 
                               margin: 0,
                             }}>
                               {formatPaymentMethod(transaction.paymentMethod)}
@@ -1266,7 +1270,7 @@ const TransactionTable = () => {
                             {transaction.paymentProvider && (
                               <p style={{ 
                                 fontSize: DESIGN_TOKENS.fontSize.sm, 
-                                color: DESIGN_TOKENS.colors.neutral500, 
+                                color: 'var(--text-muted)', 
                                 margin: '3px 0 0 0',
                                 fontWeight: 450,
                               }}>
@@ -1278,7 +1282,7 @@ const TransactionTable = () => {
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                               <p style={{ 
                                 fontSize: DESIGN_TOKENS.fontSize.md, 
-                                color: DESIGN_TOKENS.colors.neutral600, 
+                                color: 'var(--text-secondary)', 
                                 margin: 0,
                                 fontWeight: 450,
                               }}>
@@ -1342,14 +1346,14 @@ const TransactionTable = () => {
                       <div style={{ 
                         width: '44px', 
                         height: '44px', 
-                        background: `linear-gradient(135deg, ${DESIGN_TOKENS.colors.primaryLight} 0%, #D1E8E3 100%)`,
+                        background: `linear-gradient(135deg, var(--bg-subtle) 0%, var(--bg-muted) 100%)`,
                         borderRadius: DESIGN_TOKENS.radius.lg, 
                         display: 'flex', 
                         alignItems: 'center', 
                         justifyContent: 'center',
                         flexShrink: 0,
                       }}>
-                        <svg width="20" height="20" fill="none" stroke={DESIGN_TOKENS.colors.primary} strokeWidth={1.75} viewBox="0 0 24 24">
+                        <svg width="20" height="20" fill="none" stroke="var(--accent-blue)" strokeWidth={1.75} viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z" />
                         </svg>
                       </div>
@@ -1357,14 +1361,14 @@ const TransactionTable = () => {
                         <p style={{ 
                           fontSize: DESIGN_TOKENS.fontSize.lg, 
                           fontWeight: 650, 
-                          color: DESIGN_TOKENS.colors.neutral900, 
+                          color: 'var(--text-primary)', 
                           margin: 0,
                         }}>
                           #{transaction.id}
                         </p>
                         <p style={{ 
                           fontSize: DESIGN_TOKENS.fontSize.sm, 
-                          color: DESIGN_TOKENS.colors.neutral500, 
+                          color: 'var(--text-muted)', 
                           margin: 0,
                           fontWeight: 450,
                         }}>
@@ -1376,7 +1380,7 @@ const TransactionTable = () => {
                       <p style={{ 
                         fontSize: DESIGN_TOKENS.fontSize.xl, 
                         fontWeight: 700, 
-                        color: DESIGN_TOKENS.colors.neutral900, 
+                        color: 'var(--text-primary)', 
                         margin: '0 0 6px 0',
                         fontVariantNumeric: 'tabular-nums',
                         letterSpacing: '-0.01em',
@@ -1412,12 +1416,12 @@ const TransactionTable = () => {
                     gridTemplateColumns: '1fr 1fr', 
                     gap: '16px',
                     paddingTop: '16px',
-                    borderTop: `1px solid ${DESIGN_TOKENS.colors.neutral100}`,
+                    borderTop: '1px solid var(--border-subtle)',
                   }}>
                     <div>
                       <p style={{ 
                         fontSize: DESIGN_TOKENS.fontSize.xs, 
-                        color: DESIGN_TOKENS.colors.neutral400, 
+                        color: 'var(--text-muted)', 
                         margin: '0 0 4px 0', 
                         textTransform: 'uppercase', 
                         letterSpacing: '0.06em', 
@@ -1428,14 +1432,14 @@ const TransactionTable = () => {
                       <p style={{ 
                         fontSize: DESIGN_TOKENS.fontSize.md, 
                         fontWeight: 600, 
-                        color: DESIGN_TOKENS.colors.neutral900, 
+                        color: 'var(--text-primary)', 
                         margin: 0,
                       }}>
                         {transaction.userName}
                       </p>
                       <p style={{ 
                         fontSize: DESIGN_TOKENS.fontSize.sm, 
-                        color: DESIGN_TOKENS.colors.neutral500, 
+                        color: 'var(--text-muted)', 
                         margin: '2px 0 0 0', 
                         wordBreak: 'break-all',
                         fontWeight: 450,
@@ -1446,7 +1450,7 @@ const TransactionTable = () => {
                     <div>
                       <p style={{ 
                         fontSize: DESIGN_TOKENS.fontSize.xs, 
-                        color: DESIGN_TOKENS.colors.neutral400, 
+                        color: 'var(--text-muted)', 
                         margin: '0 0 4px 0', 
                         textTransform: 'uppercase', 
                         letterSpacing: '0.06em', 
@@ -1457,7 +1461,7 @@ const TransactionTable = () => {
                       <p style={{ 
                         fontSize: DESIGN_TOKENS.fontSize.md, 
                         fontWeight: 600, 
-                        color: DESIGN_TOKENS.colors.neutral900, 
+                        color: 'var(--text-primary)', 
                         margin: 0,
                       }}>
                         {formatPaymentMethod(transaction.paymentMethod)}
@@ -1465,7 +1469,7 @@ const TransactionTable = () => {
                       {transaction.paymentProvider && (
                         <p style={{ 
                           fontSize: DESIGN_TOKENS.fontSize.sm, 
-                          color: DESIGN_TOKENS.colors.neutral500, 
+                          color: 'var(--text-muted)', 
                           margin: '2px 0 0 0',
                           fontWeight: 450,
                         }}>
@@ -1476,7 +1480,7 @@ const TransactionTable = () => {
                     <div style={{ gridColumn: 'span 2' }}>
                       <p style={{ 
                         fontSize: DESIGN_TOKENS.fontSize.xs, 
-                        color: DESIGN_TOKENS.colors.neutral400, 
+                        color: 'var(--text-muted)', 
                         margin: '0 0 4px 0', 
                         textTransform: 'uppercase', 
                         letterSpacing: '0.06em', 
@@ -1486,7 +1490,7 @@ const TransactionTable = () => {
                       </p>
                       <p style={{ 
                         fontSize: DESIGN_TOKENS.fontSize.md, 
-                        color: DESIGN_TOKENS.colors.neutral600, 
+                        color: 'var(--text-secondary)', 
                         margin: 0,
                         fontWeight: 450,
                       }}>
@@ -1521,21 +1525,21 @@ const TransactionTable = () => {
           }}>
             <p style={{ 
               fontSize: DESIGN_TOKENS.fontSize.md, 
-              color: DESIGN_TOKENS.colors.neutral500, 
+              color: 'var(--text-muted)', 
               margin: 0, 
               textAlign: isMobile ? 'center' : 'left',
               fontWeight: 450,
             }}>
               Showing{' '}
-              <span style={{ fontWeight: 650, color: DESIGN_TOKENS.colors.neutral900 }}>
+              <span style={{ fontWeight: 650, color: 'var(--text-primary)' }}>
                 {data.currentPage * data.pageSize + 1}
               </span>
               {' '}to{' '}
-              <span style={{ fontWeight: 650, color: DESIGN_TOKENS.colors.neutral900 }}>
+              <span style={{ fontWeight: 650, color: 'var(--text-primary)' }}>
                 {Math.min((data.currentPage + 1) * data.pageSize, data.totalElements)}
               </span>
               {' '}of{' '}
-              <span style={{ fontWeight: 650, color: DESIGN_TOKENS.colors.neutral900 }}>
+              <span style={{ fontWeight: 650, color: 'var(--text-primary)' }}>
                 {data.totalElements}
               </span>
             </p>
@@ -1547,13 +1551,13 @@ const TransactionTable = () => {
               }}
               style={{ 
                 padding: '10px 14px', 
-                backgroundColor: DESIGN_TOKENS.colors.neutral50, 
-                border: `1.5px solid ${DESIGN_TOKENS.colors.neutral200}`, 
+                backgroundColor: 'var(--bg-subtle)', 
+                border: '1.5px solid var(--border-default)', 
                 borderRadius: DESIGN_TOKENS.radius.md, 
                 fontSize: DESIGN_TOKENS.fontSize.md, 
                 fontWeight: 550,
                 outline: 'none',
-                color: DESIGN_TOKENS.colors.neutral700,
+                color: 'var(--text-secondary)',
                 cursor: 'pointer',
                 transition: `all ${DESIGN_TOKENS.transition.fast}`,
               }}
@@ -1577,9 +1581,9 @@ const TransactionTable = () => {
               style={{
                 padding: '11px 20px',
                 borderRadius: DESIGN_TOKENS.radius.md,
-                border: `1.5px solid ${data.hasPrevious ? DESIGN_TOKENS.colors.neutral200 : DESIGN_TOKENS.colors.neutral100}`,
-                backgroundColor: '#ffffff',
-                color: data.hasPrevious ? DESIGN_TOKENS.colors.neutral700 : DESIGN_TOKENS.colors.neutral300,
+                border: `1.5px solid ${data.hasPrevious ? 'var(--border-default)' : 'var(--border-subtle)'}`,
+                backgroundColor: 'var(--surface-base)',
+                color: data.hasPrevious ? 'var(--text-primary)' : 'var(--text-disabled)',
                 cursor: data.hasPrevious ? 'pointer' : 'not-allowed',
                 fontSize: DESIGN_TOKENS.fontSize.md,
                 fontWeight: 550,
@@ -1598,7 +1602,7 @@ const TransactionTable = () => {
             </button>
             <span style={{ 
               fontSize: DESIGN_TOKENS.fontSize.md, 
-              color: DESIGN_TOKENS.colors.neutral600, 
+              color: 'var(--text-tertiary)', 
               padding: '0 16px',
               fontWeight: 600,
               whiteSpace: 'nowrap',
@@ -1612,9 +1616,9 @@ const TransactionTable = () => {
               style={{
                 padding: '11px 20px',
                 borderRadius: DESIGN_TOKENS.radius.md,
-                border: `1.5px solid ${data.hasNext ? DESIGN_TOKENS.colors.neutral200 : DESIGN_TOKENS.colors.neutral100}`,
-                backgroundColor: '#ffffff',
-                color: data.hasNext ? DESIGN_TOKENS.colors.neutral700 : DESIGN_TOKENS.colors.neutral300,
+                border: `1.5px solid ${data.hasNext ? 'var(--border-default)' : 'var(--border-subtle)'}`,
+                backgroundColor: 'var(--surface-base)',
+                color: data.hasNext ? 'var(--text-primary)' : 'var(--text-disabled)',
                 cursor: data.hasNext ? 'pointer' : 'not-allowed',
                 fontSize: DESIGN_TOKENS.fontSize.md,
                 fontWeight: 550,

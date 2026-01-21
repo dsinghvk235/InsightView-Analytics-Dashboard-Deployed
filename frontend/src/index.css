@@ -219,6 +219,129 @@
   --z-tooltip: 700;
 }
 
+/* ==================== DARK MODE THEME ==================== */
+/* FinanceHub Analytics Platform - Premium Dark Theme */
+
+[data-theme="dark"] {
+  /* Background & Surface - Deep navy-based with elegant depth */
+  --bg-page: #001F2A;
+  --bg-subtle: #003142;
+  --bg-muted: #004052;
+  --surface-base: #002833;
+  --surface-raised: #003142;
+  --surface-overlay: #002833;
+  
+  /* Accent Colors - Adjusted for dark mode */
+  --accent-blue: #7FB3C8;
+  --accent-blue-hover: #8FC4D3;
+  --accent-blue-light: rgba(127, 179, 200, 0.15);
+  --accent-blue-soft: rgba(127, 179, 200, 0.25);
+  --accent-blue-muted: rgba(127, 179, 200, 0.1);
+  
+  --accent-indigo: #7FB3C8;
+  --accent-indigo-hover: #8FC4D3;
+  --accent-indigo-light: rgba(127, 179, 200, 0.15);
+  --accent-indigo-soft: rgba(127, 179, 200, 0.25);
+  --accent-indigo-muted: rgba(127, 179, 200, 0.1);
+  
+  /* Text Colors - Off-white with proper contrast */
+  --text-primary: #F0F9F7;
+  --text-secondary: rgba(240, 249, 247, 0.85);
+  --text-tertiary: rgba(240, 249, 247, 0.7);
+  --text-muted: rgba(240, 249, 247, 0.6);
+  --text-placeholder: rgba(240, 249, 247, 0.45);
+  --text-disabled: rgba(240, 249, 247, 0.35);
+  --text-inverse: #003142;
+  --text-link: #7FB3C8;
+  --text-link-hover: #8FC4D3;
+  
+  /* Border Colors - Subtle navy borders */
+  --border-subtle: rgba(127, 179, 200, 0.15);
+  --border-default: rgba(127, 179, 200, 0.25);
+  --border-strong: rgba(127, 179, 200, 0.35);
+  --border-focus: #7FB3C8;
+  --border-error: rgba(220, 38, 38, 0.5);
+  --border-success: rgba(5, 150, 105, 0.5);
+  
+  /* Shadows - Elevated surfaces for dark mode (subtle glows) */
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.35), 0 1px 3px 0 rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 2px 4px -1px rgba(0, 0, 0, 0.4), 0 4px 6px -1px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 4px 6px -2px rgba(0, 0, 0, 0.35), 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+  --shadow-xl: 0 10px 25px -5px rgba(0, 0, 0, 0.45), 0 20px 25px -5px rgba(0, 0, 0, 0.4);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+  
+  --shadow-card: 0 1px 2px 0 rgba(0, 0, 0, 0.3), 0 1px 3px 0 rgba(0, 0, 0, 0.35);
+  --shadow-card-hover: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 10px 15px -3px rgba(0, 0, 0, 0.45);
+  --shadow-dropdown: 0 4px 6px -2px rgba(0, 0, 0, 0.35), 0 12px 16px -4px rgba(0, 0, 0, 0.5);
+  --shadow-modal: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
+  
+  /* Colored shadows for buttons - subtle glows */
+  --shadow-indigo: 0 4px 14px 0 rgba(127, 179, 200, 0.3);
+  --shadow-blue: 0 4px 14px 0 rgba(127, 179, 200, 0.35);
+  --shadow-emerald: 0 4px 14px 0 rgba(5, 150, 105, 0.35);
+  --shadow-rose: 0 4px 14px 0 rgba(225, 29, 72, 0.35);
+  
+  /* Semantic Colors - Adjusted for dark mode with proper contrast */
+  --success: #34D399;
+  --success-hover: #10B981;
+  --success-light: rgba(5, 150, 105, 0.2);
+  --success-soft: rgba(5, 150, 105, 0.3);
+  --success-border: rgba(52, 211, 153, 0.5);
+  
+  --warning: #FBBF24;
+  --warning-hover: #F59E0B;
+  --warning-light: rgba(217, 119, 6, 0.2);
+  --warning-soft: rgba(217, 119, 6, 0.3);
+  --warning-border: rgba(251, 191, 36, 0.5);
+  
+  --error: #F87171;
+  --error-hover: #EF4444;
+  --error-light: rgba(220, 38, 38, 0.2);
+  --error-soft: rgba(220, 38, 38, 0.3);
+  --error-border: rgba(248, 113, 113, 0.5);
+  
+  --info: #60A5FA;
+  --info-hover: #3B82F6;
+  --info-light: rgba(37, 99, 235, 0.2);
+  --info-soft: rgba(37, 99, 235, 0.3);
+  --info-border: rgba(96, 165, 250, 0.5);
+  
+  /* Selection */
+  --selection-bg: rgba(127, 179, 200, 0.3);
+  --selection-color: #F0F9F7;
+  
+  /* Scrollbar */
+  --scrollbar-thumb: rgba(127, 179, 200, 0.3);
+  --scrollbar-thumb-hover: rgba(127, 179, 200, 0.5);
+}
+
+/* Dark mode selection */
+[data-theme="dark"] ::selection {
+  background-color: var(--selection-bg);
+  color: var(--selection-color);
+}
+
+/* Dark mode scrollbar */
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+[data-theme="dark"] * {
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+
+/* Dark mode tooltip */
+[data-theme="dark"] .tooltip::before {
+  background: var(--surface-raised);
+  color: var(--text-primary);
+  border: 1px solid var(--border-default);
+}
+
 /* ==================== BASE STYLES ==================== */
 
 *,
@@ -1098,7 +1221,7 @@ table {
 
 /* Zebra striping - subtle */
 .table-striped tbody tr:nth-child(even) {
-  background: var(--neutral-25);
+  background: var(--bg-subtle);
 }
 
 .table-striped tbody tr:nth-child(even):hover {

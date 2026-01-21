@@ -39,6 +39,7 @@ public class CacheConfig {
         
         // Register all cache names
         cacheManager.setCacheNames(java.util.List.of(
+                "analyticsOverview",  // Added for optimized overview endpoint
                 "kpiComparison",
                 "kpiMetrics",
                 "transactionsByStatus",

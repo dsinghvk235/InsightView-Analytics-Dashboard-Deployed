@@ -59,30 +59,47 @@ public class AnalyticsService {
 
     /**
      * Get analytics overview for dashboard.
-     * Aggregates key metrics: users, transactions, revenue, success rate.
+     * OPTIMIZED: Uses only 2 database queries instead of 7 for <300ms performance.
+     * CACHED: 30 seconds TTL to further improve performance.
      * 
      * @return AnalyticsOverviewResponse with all key metrics
      */
+    @Cacheable(value = "analyticsOverview", key = "'overview'")
     public AnalyticsOverviewResponse getAnalyticsOverview() {
-        log.debug("Fetching analytics overview");
+        log.debug("Fetching analytics overview (cache miss)");
+        long startTime = System.currentTimeMillis();
 
-        // User metrics
-        long totalUsers = userRepository.getTotalUserCount();
-        long activeUsers = userRepository.countByStatus(UserStatus.ACTIVE);
+        // OPTIMIZED: Get all user metrics in 1 query
+        Object[] userMetrics = userRepository.getOverviewMetrics();
+        long totalUsers = ((Number) userMetrics[0]).longValue();
+        long activeUsers = ((Number) userMetrics[1]).longValue();
 
-        // Transaction metrics
-        long totalTransactions = transactionRepository.count();
-        long successfulTransactions = transactionRepository.countByStatus(TransactionStatus.SUCCESS);
-        long failedTransactions = transactionRepository.countByStatus(TransactionStatus.FAILED);
+        // OPTIMIZED: Get all transaction metrics in 1 query
+        LocalDateTime revenueStartDate = LocalDateTime.now().minusDays(30);
+        Object[] transactionMetrics = transactionRepository.getOverviewMetrics(revenueStartDate);
+        
+        long totalTransactions = ((Number) transactionMetrics[0]).longValue();
+        long successfulTransactions = ((Number) transactionMetrics[1]).longValue();
+        long failedTransactions = ((Number) transactionMetrics[2]).longValue();
+        BigDecimal totalRevenue = (BigDecimal) transactionMetrics[3];
+        BigDecimal averageTransactionAmount = (BigDecimal) transactionMetrics[4];
+        Double successRate = ((Number) transactionMetrics[5]).doubleValue();
 
-        // Revenue metrics (last 30 days)
-        LocalDateTime endDate = LocalDateTime.now();
-        LocalDateTime startDate = endDate.minusDays(30);
-        BigDecimal totalRevenue = getTotalRevenue(startDate, endDate);
-        BigDecimal averageTransactionAmount = getAverageTransactionAmount(startDate, endDate);
+        // Scale BigDecimal values to 2 decimal places
+        if (totalRevenue != null) {
+            totalRevenue = totalRevenue.setScale(2, RoundingMode.HALF_UP);
+        } else {
+            totalRevenue = ZERO;
+        }
+        
+        if (averageTransactionAmount != null) {
+            averageTransactionAmount = averageTransactionAmount.setScale(2, RoundingMode.HALF_UP);
+        } else {
+            averageTransactionAmount = ZERO;
+        }
 
-        // Success rate calculation
-        Double successRate = calculateSuccessRate(totalTransactions, successfulTransactions);
+        long executionTime = System.currentTimeMillis() - startTime;
+        log.debug("Analytics overview fetched in {}ms (optimized from 7 queries to 2)", executionTime);
 
         return new AnalyticsOverviewResponse(
                 totalUsers,

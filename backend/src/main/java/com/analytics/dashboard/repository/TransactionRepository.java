@@ -775,6 +775,28 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     );
 
     /**
+     * OPTIMIZED: Get all overview metrics in a SINGLE query.
+     * This replaces multiple separate queries with one aggregated query.
+     * Used for dashboard overview endpoint to meet <300ms latency requirement.
+     */
+    @Query(value = """
+            SELECT 
+                COUNT(*) as totalTransactions,
+                SUM(CASE WHEN status = 'SUCCESS' THEN 1 ELSE 0 END) as successCount,
+                SUM(CASE WHEN status = 'FAILED' THEN 1 ELSE 0 END) as failedCount,
+                COALESCE(SUM(CASE WHEN status = 'SUCCESS' AND type = 'PAYMENT' 
+                    AND created_at >= :revenueStartDate THEN amount ELSE 0 END), 0) as totalRevenue,
+                COALESCE(AVG(CASE WHEN status = 'SUCCESS' AND type = 'PAYMENT' 
+                    AND created_at >= :revenueStartDate THEN amount END), 0) as avgTransactionAmount,
+                CASE 
+                    WHEN COUNT(*) = 0 THEN 0.0
+                    ELSE (SUM(CASE WHEN status = 'SUCCESS' THEN 1 ELSE 0 END) * 100.0 / COUNT(*))
+                END as successRate
+            FROM transactions
+            """, nativeQuery = true)
+    Object[] getOverviewMetrics(@Param("revenueStartDate") LocalDateTime revenueStartDate);
+    
+    /**
      * OPTIMIZED: Get all KPI metrics for a period in a SINGLE query.
      * This replaces 6 separate queries with one aggregated query.
      * Uses projection interface for type-safe result mapping.

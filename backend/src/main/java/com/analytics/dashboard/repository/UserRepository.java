@@ -67,6 +67,18 @@ public interface UserRepository extends JpaRepository<User, Long> {
      */
     @Query("SELECT COUNT(u) FROM User u")
     long getTotalUserCount();
+    
+    /**
+     * OPTIMIZED: Get all user overview metrics in a SINGLE query.
+     * Returns: [totalUsers, activeUsers]
+     */
+    @Query(value = """
+            SELECT 
+                COUNT(*) as totalUsers,
+                SUM(CASE WHEN status = 'ACTIVE' THEN 1 ELSE 0 END) as activeUsers
+            FROM users
+            """, nativeQuery = true)
+    Object[] getOverviewMetrics();
 
     /**
      * Get user count by status.

@@ -125,8 +125,6 @@ const Dashboard = () => {
       setSearchResult(null);
       return;
     }
-
-    console.log(`[Search] Initiating search for: "${query}" on ${activeTab} page`);
     
     setSearchLoading(true);
     setSearchError(null);
@@ -139,7 +137,6 @@ const Dashboard = () => {
       
       // For charts and advanced tabs, use explicit date range
       if (activeTab === 'charts' || activeTab === 'advanced') {
-        console.log(`[Search] Using custom date range: ${analyticsDateRange.startDate} to ${analyticsDateRange.endDate}`);
         result = await analyticsAPI.search(
           query, 
           'custom', 
@@ -161,11 +158,9 @@ const Dashboard = () => {
             customDays = periodDays;
         }
         
-        console.log(`[Search] Using period: ${range}, Days: ${customDays || 'N/A'}`);
         result = await analyticsAPI.search(query, range, customDays);
       }
       
-      console.log(`[Search] Result received - Matched: ${result.matchedInsight || 'NO_MATCH'}`);
       setSearchResult(result);
     } catch (err: any) {
       console.error('[Search] Error:', err);
@@ -179,7 +174,6 @@ const Dashboard = () => {
   useEffect(() => {
     if (showSearchResults && searchQuery.trim() && !searchLoading) {
       if (activeTab === 'overview' || activeTab === 'transactions') {
-        console.log(`[Search] Period changed to ${periodDays} days, re-running search...`);
         handleSearch(searchQuery);
       }
     }
@@ -189,7 +183,6 @@ const Dashboard = () => {
   useEffect(() => {
     if (showSearchResults && searchQuery.trim() && !searchLoading) {
       if (activeTab === 'charts' || activeTab === 'advanced') {
-        console.log(`[Search] Analytics date range changed, re-running search...`);
         handleSearch(searchQuery);
       }
     }
@@ -198,7 +191,6 @@ const Dashboard = () => {
   // Update search context when switching tabs
   useEffect(() => {
     if (showSearchResults && searchQuery.trim() && lastSearchedTab !== activeTab && !searchLoading) {
-      console.log(`[Search] Tab changed from ${lastSearchedTab} to ${activeTab}, re-running search with new context...`);
       // Re-run search with new tab's date context
       handleSearch(searchQuery);
     }
@@ -223,8 +215,6 @@ const Dashboard = () => {
 
   // Export handler
   const handleExport = async () => {
-    console.log(`[Export] Starting export - Metric: ${selectedExportMetric}, Format: ${selectedExportFormat}`);
-    
     setExportLoading(true);
     setExportError(null);
 
@@ -242,8 +232,6 @@ const Dashboard = () => {
         // Use period days
         range = periodDays === 0 ? 'all' : `${periodDays}d`;
       }
-
-      console.log(`[Export] Using range: ${range}`);
 
       const blob = await analyticsAPI.exportData({
         metric: selectedExportMetric,
@@ -266,7 +254,6 @@ const Dashboard = () => {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
 
-      console.log(`[Export] Download triggered: ${filename}`);
       setShowExportDropdown(false);
 
     } catch (err: any) {

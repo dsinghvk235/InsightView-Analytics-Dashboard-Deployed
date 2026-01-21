@@ -43,11 +43,8 @@ const AIInsightsModal = ({ isOpen, onClose, periodDays }: AIInsightsModalProps) 
 
     try {
       const range = getRange();
-      console.log(`[AIInsights] Fetching insights for range: ${range}`);
-      
       const response = await analyticsAPI.getAIInsights(range);
       
-      console.log(`[AIInsights] Received response:`, response);
       setInsights(response);
       
       if (!response.success) {

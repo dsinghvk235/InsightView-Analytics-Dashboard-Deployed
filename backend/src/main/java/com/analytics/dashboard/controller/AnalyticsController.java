@@ -1,9 +1,12 @@
 package com.analytics.dashboard.controller;
 
+import com.analytics.dashboard.dto.request.AIInsightsRequest;
 import com.analytics.dashboard.dto.response.*;
 import com.analytics.dashboard.model.PaymentMethod;
 import com.analytics.dashboard.model.TransactionStatus;
+import com.analytics.dashboard.service.AIInsightsService;
 import com.analytics.dashboard.service.AnalyticsService;
+import com.analytics.dashboard.service.SearchService;
 import jakarta.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,10 +32,14 @@ public class AnalyticsController {
     private static final Logger log = LoggerFactory.getLogger(AnalyticsController.class);
     
     private final AnalyticsService analyticsService;
+    private final SearchService searchService;
+    private final AIInsightsService aiInsightsService;
 
     // Manual constructor (Lombok @RequiredArgsConstructor not processing)
-    public AnalyticsController(AnalyticsService analyticsService) {
+    public AnalyticsController(AnalyticsService analyticsService, SearchService searchService, AIInsightsService aiInsightsService) {
         this.analyticsService = analyticsService;
+        this.searchService = searchService;
+        this.aiInsightsService = aiInsightsService;
     }
 
     /**
@@ -1528,6 +1535,285 @@ public class AnalyticsController {
             log.error("GET /api/analytics/transactions/table - Error after {}ms: {}",
                     executionTime, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    // ==================== Analytics Search ====================
+
+    /**
+     * GET /api/analytics/search
+     * 
+     * Search for analytics insights using keyword-based matching.
+     * This is a rule-based search that maps user keywords to predefined analytics queries.
+     * NOT a full-text search or NLP-based search.
+     * 
+     * <p><b>What it returns:</b>
+     * <ul>
+     *   <li>query: The original search query</li>
+     *   <li>matchedInsight: The type of analytics insight that matched</li>
+     *   <li>title: Human-readable title of the matched insight</li>
+     *   <li>description: Description of what this insight shows</li>
+     *   <li>data: The actual analytics data (structure varies by insight type)</li>
+     * </ul>
+     * 
+     * <p><b>Supported Keywords:</b>
+     * <ul>
+     *   <li>"failed", "failure" → Failed Transactions Summary</li>
+     *   <li>"revenue", "amount", "gtv" → Revenue Summary</li>
+     *   <li>"top users", "vip", "best customers" → Top Users by Revenue</li>
+     *   <li>"payment", "upi", "card", "wallet", "currency" → Payment Method Breakdown</li>
+     *   <li>"status", "pending" → Transaction Status Overview</li>
+     *   <li>"success rate", "conversion" → Success Rate Analytics</li>
+     *   <li>"daily", "trend", "history" → Daily Transaction Trends</li>
+     *   <li>"overview", "summary", "dashboard" → Analytics Overview</li>
+     * </ul>
+     * 
+     * <p><b>How to use:</b>
+     * <pre>
+     * # Search for failed transactions in last 7 days
+     * curl "http://localhost:8080/api/analytics/search?q=failed%20transactions&range=7d"
+     * 
+     * # Search for revenue summary in last 30 days
+     * curl "http://localhost:8080/api/analytics/search?q=revenue&range=30d"
+     * 
+     * # Search with custom period (45 days)
+     * curl "http://localhost:8080/api/analytics/search?q=top%20users&range=custom&days=45"
+     * </pre>
+     * 
+     * <p><b>Query Parameters:</b>
+     * <ul>
+     *   <li><b>q</b> (required): Search query string</li>
+     *   <li><b>range</b> (optional, default: 7d): Date range - "7d", "30d", "90d", or "custom"</li>
+     *   <li><b>days</b> (optional): Custom number of days when range=custom (default: 30)</li>
+     * </ul>
+     * 
+     * <p><b>Response example (matched):</b>
+     * <pre>
+     * {
+     *   "query": "failed transactions",
+     *   "matchedInsight": "FAILED_TRANSACTIONS_SUMMARY",
+     *   "title": "Failed Transactions Summary",
+     *   "description": "Summary of failed transactions including count and percentage for the selected period",
+     *   "data": {
+     *     "failedCount": 125,
+     *     "failedPercentage": 8.5,
+     *     "totalTransactions": 1470,
+     *     "periodStart": "2025-01-14",
+     *     "periodEnd": "2025-01-21"
+     *   }
+     * }
+     * </pre>
+     * 
+     * <p><b>Response example (no match):</b>
+     * <pre>
+     * {
+     *   "query": "unknown query",
+     *   "matchedInsight": null,
+     *   "title": "No Match Found",
+     *   "description": "No analytics insight matches your search query. Try keywords like: 'failed', 'revenue', 'top users', 'payment methods', 'success rate'",
+     *   "data": null
+     * }
+     * </pre>
+     * 
+     * @param query Search query string
+     * @param range Date range ("7d", "30d", "90d", "custom")
+     * @param days Custom days when range=custom
+     * @return SearchResultResponse with matched insight data or no-match response
+     */
+    @GetMapping("/search")
+    public ResponseEntity<SearchResultResponse> searchAnalytics(
+            @RequestParam("q") String query,
+            @RequestParam(defaultValue = "7d") String range,
+            @RequestParam(required = false) Integer days,
+            @RequestParam(required = false) LocalDate startDate,
+            @RequestParam(required = false) LocalDate endDate) {
+        
+        log.info("GET /api/analytics/search - Query: '{}', Range: {}, Days: {}, StartDate: {}, EndDate: {}", 
+                query, range, days, startDate, endDate);
+        long startTime = System.currentTimeMillis();
+
+        // Validate query is not empty
+        if (query == null || query.trim().isEmpty()) {
+            log.warn("GET /api/analytics/search - Empty query provided");
+            return ResponseEntity.badRequest().build();
+        }
+
+        try {
+            SearchResultResponse response;
+            
+            // If explicit date range is provided, use it
+            if (startDate != null && endDate != null) {
+                log.debug("Search using explicit date range: {} to {}", startDate, endDate);
+                response = searchService.searchWithDateRange(query, startDate, endDate);
+            } else {
+                // Determine period days from range parameter
+                int periodDays = determinePeriodDays(range, days);
+                log.debug("Search period determined: {} days", periodDays);
+                response = searchService.search(query, periodDays);
+            }
+            
+            long executionTime = System.currentTimeMillis() - startTime;
+            
+            if (response.getMatchedInsight() != null) {
+                log.info("GET /api/analytics/search - Query '{}' matched to {} in {}ms",
+                        query, response.getMatchedInsight(), executionTime);
+            } else {
+                log.info("GET /api/analytics/search - Query '{}' had no match in {}ms",
+                        query, executionTime);
+            }
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            long executionTime = System.currentTimeMillis() - startTime;
+            log.error("GET /api/analytics/search - Error after {}ms: {}",
+                    executionTime, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    // ==================== AI Insights ====================
+
+    /**
+     * POST /api/analytics/ai-insights
+     * 
+     * Generates AI-powered insights from analytics data.
+     * 
+     * <p><b>IMPORTANT PHILOSOPHY:</b>
+     * <ul>
+     *   <li>AI interprets ONLY existing, pre-aggregated analytics data</li>
+     *   <li>AI does NOT query the database directly</li>
+     *   <li>AI does NOT generate new metrics or make business decisions</li>
+     *   <li>Output is deterministic based on input data</li>
+     * </ul>
+     * 
+     * <p><b>What it returns:</b>
+     * <ul>
+     *   <li>summary: One-line summary of key findings</li>
+     *   <li>insights: List of 1-5 observations (max 2 lines each)</li>
+     *   <li>disclaimer: "Insights are generated from aggregated analytics data."</li>
+     *   <li>periodAnalyzed: Description of the analyzed period</li>
+     *   <li>success: Whether insights were generated successfully</li>
+     * </ul>
+     * 
+     * <p><b>How to use:</b>
+     * <pre>
+     * curl -X POST "http://localhost:8080/api/analytics/ai-insights" \
+     *   -H "Content-Type: application/json" \
+     *   -d '{"range": "7d"}'
+     * </pre>
+     * 
+     * <p><b>Request body:</b>
+     * <pre>
+     * {
+     *   "range": "7d"  // Options: "7d", "30d", "90d"
+     * }
+     * </pre>
+     * 
+     * <p><b>Response example:</b>
+     * <pre>
+     * {
+     *   "summary": "Revenue declined while failure rates increased.",
+     *   "insights": [
+     *     "Revenue decreased by 18.5% compared to the previous period.",
+     *     "Failed transactions increased by 32%. Investigate payment gateway issues.",
+     *     "Success rate is at 82%, below the target of 85%.",
+     *     "UPI accounts for 45% of transactions."
+     *   ],
+     *   "disclaimer": "Insights are generated from aggregated analytics data.",
+     *   "periodAnalyzed": "Last 7 days vs previous 7 days",
+     *   "success": true
+     * }
+     * </pre>
+     * 
+     * <p><b>Insights explain:</b>
+     * <ul>
+     *   <li>What changed in the analytics</li>
+     *   <li>Possible reasons for the changes</li>
+     *   <li>What metrics to investigate next</li>
+     * </ul>
+     * 
+     * <p><b>Insights do NOT:</b>
+     * <ul>
+     *   <li>Make business decisions</li>
+     *   <li>Predict future outcomes</li>
+     *   <li>Use speculative language like "definitely" or "guaranteed"</li>
+     *   <li>Invent numbers not in the input data</li>
+     * </ul>
+     * 
+     * <p><b>Error handling:</b>
+     * If AI service is unavailable, returns success=false with an error message.
+     * The endpoint never throws exceptions to the client.
+     * 
+     * @param request AIInsightsRequest containing the time range
+     * @return ResponseEntity with AIInsightsResponse
+     */
+    @PostMapping("/ai-insights")
+    public ResponseEntity<AIInsightsResponse> getAIInsights(
+            @RequestBody @jakarta.validation.Valid AIInsightsRequest request) {
+        
+        log.info("POST /api/analytics/ai-insights - Request received. Range: {}", request.getRange());
+        long startTime = System.currentTimeMillis();
+
+        try {
+            AIInsightsResponse response = aiInsightsService.generateInsights(request);
+            
+            long executionTime = System.currentTimeMillis() - startTime;
+            
+            if (response.isSuccess()) {
+                log.info("POST /api/analytics/ai-insights - Generated {} insights in {}ms",
+                        response.getInsights() != null ? response.getInsights().size() : 0,
+                        executionTime);
+            } else {
+                log.warn("POST /api/analytics/ai-insights - AI service unavailable after {}ms: {}",
+                        executionTime, response.getSummary());
+            }
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            long executionTime = System.currentTimeMillis() - startTime;
+            log.error("POST /api/analytics/ai-insights - Error after {}ms: {}",
+                    executionTime, e.getMessage(), e);
+            
+            // Return graceful error response instead of 500
+            AIInsightsResponse errorResponse = AIInsightsResponse.builder()
+                    .summary("An error occurred while generating insights. Please try again.")
+                    .insights(java.util.Collections.emptyList())
+                    .periodAnalyzed("N/A")
+                    .success(false)
+                    .build();
+            
+            return ResponseEntity.ok(errorResponse);
+        }
+    }
+
+    /**
+     * Determine period days from range parameter.
+     * Supports: "7d", "30d", "90d", "custom", or "all"
+     */
+    private int determinePeriodDays(String range, Integer customDays) {
+        if (range == null) {
+            return 7; // Default to 7 days
+        }
+        
+        switch (range.toLowerCase()) {
+            case "7d":
+                return 7;
+            case "30d":
+                return 30;
+            case "90d":
+                return 90;
+            case "all":
+                return 0; // 0 means all time
+            case "custom":
+                return customDays != null && customDays > 0 ? customDays : 30;
+            default:
+                // Try to parse as number (e.g., "45")
+                try {
+                    int parsed = Integer.parseInt(range.replaceAll("[^0-9]", ""));
+                    return parsed > 0 ? parsed : 7;
+                } catch (NumberFormatException e) {
+                    return 7; // Default to 7 days
+                }
         }
     }
 }

@@ -34,7 +34,32 @@ const COLORS = {
   teal: '#7FB3C8',
 };
 
-const PAYMENT_COLORS = ['#7FB3C8', '#6BA3B8', '#9FC4BB', '#d97706', '#7FB3C8', '#7FB3C8'];
+const PIE_COLORS = ['#7FB3C8', '#6BA3B8', '#9FC4BB', '#f59e0b', '#7FB3C8', '#7FB3C8'];
+
+// Premium Payment Method Colors - Muted theme palette matching screenshot
+const PAYMENT_METHOD_COLORS: { [key: string]: { main: string; light: string; glow: string } } = {
+  'UPI': { 
+    main: '#7FB3C8',      // Muted blue-cyan (matches theme)
+    light: '#E6F4F1', 
+    glow: 'rgba(127, 179, 200, 0.4)' 
+  },
+  'CREDIT_CARD': { 
+    main: '#6BA3B8',      // Muted blue (matches theme)
+    light: '#E0EFF2', 
+    glow: 'rgba(107, 163, 184, 0.4)' 
+  },
+  'WALLETS': { 
+    main: '#9FC4BB',      // Muted green-cyan (matches theme)
+    light: '#EBF6F4', 
+    glow: 'rgba(159, 196, 187, 0.4)' 
+  },
+};
+
+const PAYMENT_METHOD_LABELS: { [key: string]: string } = {
+  'UPI': 'UPI',
+  'CREDIT_CARD': 'Credit Card',
+  'WALLETS': 'Wallets',
+};
 
 // ==================== PREMIUM HEATMAP COLOR SYSTEM ====================
 // Theme-aware color scales for light and dark modes
@@ -937,6 +962,7 @@ const AdvancedCharts = () => {
   const [showPending, setShowPending] = useState(true);
   const [showFailed, setShowFailed] = useState(true);
   const [statusViewMode, setStatusViewMode] = useState<'count' | 'percentage'>('count');
+  const [activePaymentIndex, setActivePaymentIndex] = useState<number | null>(null);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -1208,6 +1234,89 @@ const AdvancedCharts = () => {
     );
   };
 
+  // Premium Payment Methods Tooltip
+  const PremiumPaymentTooltip = ({ active, payload }: any) => {
+    if (!active || !payload || !payload.length) return null;
+
+    const data = payload[0];
+    const methodKey = data.name;
+    const colorConfig = PAYMENT_METHOD_COLORS[methodKey] || { main: '#6366f1', light: '#eef2ff', glow: 'rgba(99, 102, 241, 0.4)' };
+    const label = PAYMENT_METHOD_LABELS[methodKey] || methodKey;
+    const percentage = data.value;
+
+    return (
+      <div style={{
+        backgroundColor: 'var(--surface-overlay)',
+        opacity: 0.98,
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+        border: '1px solid var(--border-default)',
+        borderRadius: '14px',
+        padding: '14px 18px',
+        boxShadow: 'var(--shadow-dropdown)',
+        minWidth: '140px',
+        animation: 'tooltipFadeIn 0.15s ease-out'
+      }}>
+        {/* Header with colored dot and label */}
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '10px',
+          marginBottom: '10px'
+        }}>
+          <div style={{ 
+            width: '10px', 
+            height: '10px', 
+            borderRadius: '4px', 
+            backgroundColor: colorConfig.main,
+            boxShadow: `0 0 10px ${colorConfig.glow}`
+          }} />
+          <span style={{ 
+            fontSize: '14px', 
+            fontWeight: 600, 
+            color: 'var(--text-primary)'
+          }}>
+            {label}
+          </span>
+        </div>
+        
+        {/* Percentage Value */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'baseline',
+          gap: '2px'
+        }}>
+          <span style={{ 
+            fontSize: '26px', 
+            fontWeight: 700, 
+            color: colorConfig.main,
+            fontVariantNumeric: 'tabular-nums',
+            letterSpacing: '-0.02em'
+          }}>
+            {percentage.toFixed(1)}
+          </span>
+          <span style={{ 
+            fontSize: '16px', 
+            fontWeight: 600, 
+            color: 'var(--text-muted)'
+          }}>
+            %
+          </span>
+        </div>
+        
+        {/* Subtitle */}
+        <p style={{ 
+          fontSize: '11px', 
+          color: 'var(--text-tertiary)',
+          margin: '6px 0 0 0',
+          fontWeight: 500
+        }}>
+          of total payments
+        </p>
+      </div>
+    );
+  };
+
   // Premium tooltip for Status Split stacked bar chart
   const PremiumStatusTooltip = ({ active, payload, label }: any) => {
     if (!active || !payload || !payload.length) return null;
@@ -1460,11 +1569,11 @@ const AdvancedCharts = () => {
               alignItems: 'center',
               justifyContent: 'center'
             }}>
-              <svg width="18" height="18" fill="none" stroke="#4f46e5" strokeWidth={1.5} viewBox="0 0 24 24">
+              <svg width="18" height="18" fill="none" stroke="var(--accent-blue)" strokeWidth={1.5} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
               </svg>
             </div>
-            <span style={{ fontSize: '14px', fontWeight: 600, color: 'rgba(0, 49, 66, 0.7)' }}>Analysis Period</span>
+            <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>Analysis Period</span>
           </div>
           <div style={{ 
             display: 'flex', 
@@ -1811,19 +1920,25 @@ const AdvancedCharts = () => {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
-        {/* Chart 2: Payment Method Split */}
-        <div style={cardStyle}>
-          <div style={{ marginBottom: '20px' }}>
+        {/* Chart 2: Premium Payment Method Split */}
+        <div className="chart-card" style={{
+          ...cardStyle,
+          padding: '24px',
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
+          {/* Header */}
+          <div style={{ marginBottom: '24px' }}>
             <h3 style={{ 
-              fontSize: isMobile ? '16px' : '17px', 
-              fontWeight: 600, 
+              fontSize: isMobile ? '16px' : '18px', 
+              fontWeight: 700, 
               color: 'var(--text-primary)', 
               margin: 0,
-              letterSpacing: '-0.01em'
+              letterSpacing: '-0.02em'
             }}>
               Payment Method Split
             </h3>
-            <p style={{ fontSize: '13px', color: 'rgba(0, 49, 66, 0.6)', margin: '4px 0 0 0' }}>
+            <p style={{ fontSize: '13px', color: 'var(--text-tertiary)', margin: '6px 0 0 0', fontWeight: 500 }}>
               Distribution by payment type
             </p>
           </div>
@@ -1833,93 +1948,258 @@ const AdvancedCharts = () => {
               display: 'flex', 
               flexDirection: isMobile ? 'column' : 'row',
               alignItems: 'center',
-              gap: '16px'
+              gap: isMobile ? '24px' : '20px'
             }}>
-              <ResponsiveContainer width={isMobile ? '100%' : '50%'} height={isMobile ? 200 : 240}>
-                <PieChart>
-                  <Pie
-                    data={paymentMethods.map(m => ({ name: m.paymentMethod, value: m.percentage, amount: m.totalAmount, count: m.transactionCount }))}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={isMobile ? 45 : 50}
-                    outerRadius={isMobile ? 75 : 85}
-                    paddingAngle={3}
-                    dataKey="value"
-                    stroke="none"
-                  >
-                    {paymentMethods.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={PAYMENT_COLORS[index % PAYMENT_COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    contentStyle={{ 
-                      backgroundColor: 'var(--surface-base)', 
-                      border: '1px solid var(--border-default)', 
-                      borderRadius: '10px',
-                      boxShadow: 'var(--shadow-dropdown)'
-                    }}
-                    formatter={(value: number | undefined, _name: string | undefined, props: any) => [
-                      <span key="tooltip">
-                        <strong>{value?.toFixed(1) || 0}%</strong><br/>
-                        {formatCurrency(props.payload.amount)}<br/>
-                        {formatNumber(props.payload.count)} txns
-                      </span>
-                    ]}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-              
+              {/* Donut Chart with Center Label */}
               <div style={{ 
-                flex: 1,
+                position: 'relative',
+                width: isMobile ? '100%' : '55%',
                 display: 'flex',
-                flexDirection: isMobile ? 'row' : 'column',
-                flexWrap: isMobile ? 'wrap' : 'nowrap',
-                justifyContent: isMobile ? 'center' : 'flex-start',
-                gap: '8px'
+                justifyContent: 'center'
               }}>
-                {paymentMethods.map((method, index) => (
-                  <div 
-                    key={method.paymentMethod} 
-                    style={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      gap: '10px',
-                      padding: '8px 12px',
-                      backgroundColor: 'var(--bg-subtle)',
-                      borderRadius: '8px',
-                      border: '1px solid var(--border-subtle)'
-                    }}
-                  >
-                    <div style={{ 
-                      width: '10px', 
-                      height: '10px', 
-                      borderRadius: '3px', 
-                      backgroundColor: PAYMENT_COLORS[index % PAYMENT_COLORS.length], 
-                      flexShrink: 0 
-                    }} />
-                    <div>
-                      <p style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', margin: 0 }}>
-                        {method.paymentMethod}
-                      </p>
-                      <p style={{ fontSize: '12px', color: 'var(--text-tertiary)', margin: 0 }}>
-                        {method.percentage.toFixed(1)}%
-                      </p>
+                <ResponsiveContainer width="100%" height={isMobile ? 220 : 260}>
+                  <PieChart>
+                    <defs>
+                      {/* Subtle drop shadow for the donut */}
+                      <filter id="donutShadowAdvanced" x="-20%" y="-20%" width="140%" height="140%">
+                        <feDropShadow dx="0" dy="2" stdDeviation="4" floodOpacity="0.08"/>
+                      </filter>
+                      {/* Glow effects for each segment */}
+                      {paymentMethods.map((method) => (
+                        <filter key={`glow-adv-${method.paymentMethod}`} id={`glow-adv-${method.paymentMethod}`} x="-50%" y="-50%" width="200%" height="200%">
+                          <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                          <feMerge>
+                            <feMergeNode in="coloredBlur"/>
+                            <feMergeNode in="SourceGraphic"/>
+                          </feMerge>
+                        </filter>
+                      ))}
+                    </defs>
+                    <Pie
+                      data={paymentMethods.map(m => ({ name: m.paymentMethod, value: m.percentage }))}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={isMobile ? 58 : 70}
+                      outerRadius={isMobile ? 80 : 92}
+                      paddingAngle={4}
+                      dataKey="value"
+                      stroke="var(--surface-base)"
+                      strokeWidth={3}
+                      cornerRadius={6}
+                      animationBegin={0}
+                      animationDuration={800}
+                      animationEasing="ease-out"
+                      onMouseEnter={(_, index) => setActivePaymentIndex(index)}
+                      onMouseLeave={() => setActivePaymentIndex(null)}
+                      style={{ filter: 'url(#donutShadowAdvanced)', cursor: 'pointer' }}
+                    >
+                      {paymentMethods.map((method, index) => {
+                        const colorConfig = PAYMENT_METHOD_COLORS[method.paymentMethod] || { main: PIE_COLORS[index % PIE_COLORS.length] };
+                        const isActive = activePaymentIndex === index;
+                        const isInactive = activePaymentIndex !== null && activePaymentIndex !== index;
+                        return (
+                          <Cell 
+                            key={`cell-${index}`} 
+                            fill={colorConfig.main}
+                            style={{
+                              filter: isActive ? `url(#glow-adv-${method.paymentMethod})` : 'none',
+                              opacity: isInactive ? 0.5 : 1,
+                              transition: 'all 0.2s ease',
+                              transform: isActive ? 'scale(1.04)' : 'scale(1)',
+                              transformOrigin: 'center center'
+                            }}
+                          />
+                        );
+                      })}
+                    </Pie>
+                    <Tooltip content={<PremiumPaymentTooltip />} />
+                  </PieChart>
+                </ResponsiveContainer>
+                
+                {/* Center Label - Positioned absolutely over the donut */}
+                <div style={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  textAlign: 'center',
+                  pointerEvents: 'none'
+                }}>
+                  {/* Primary Label */}
+                  <span style={{
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    color: 'var(--text-tertiary)',
+                    letterSpacing: '0.05em',
+                    textTransform: 'uppercase',
+                    marginBottom: '2px'
+                  }}>
+                    Payments
+                  </span>
+                  
+                  {/* Main Value */}
+                  <span style={{
+                    fontSize: isMobile ? '24px' : '28px',
+                    fontWeight: 700,
+                    color: 'var(--text-primary)',
+                    fontVariantNumeric: 'tabular-nums',
+                    letterSpacing: '-0.02em',
+                    lineHeight: 1.1
+                  }}>
+                    100%
+                  </span>
+                  
+                  {/* Secondary Insight - Most used method */}
+                  {(() => {
+                    const topMethod = paymentMethods.reduce((prev, curr) => 
+                      prev.percentage > curr.percentage ? prev : curr
+                    );
+                    const label = PAYMENT_METHOD_LABELS[topMethod.paymentMethod] || topMethod.paymentMethod;
+                    return (
+                      <span style={{
+                        fontSize: '10px',
+                        fontWeight: 500,
+                        color: 'var(--text-muted)',
+                        marginTop: '4px',
+                        maxWidth: isMobile ? '80px' : '90px',
+                        lineHeight: 1.3
+                      }}>
+                        Most used: {label}
+                      </span>
+                    );
+                  })()}
+                </div>
+              </div>
+              
+              {/* Premium Legend - Right side */}
+              <div style={{ 
+                flex: 1, 
+                display: 'flex', 
+                flexDirection: 'column',
+                gap: '10px',
+                width: isMobile ? '100%' : 'auto',
+                minWidth: isMobile ? 'auto' : '160px'
+              }}>
+                {paymentMethods.map((method, index) => {
+                  const colorConfig = PAYMENT_METHOD_COLORS[method.paymentMethod] || { 
+                    main: PIE_COLORS[index % PIE_COLORS.length], 
+                    light: '#f8fafc',
+                    glow: 'rgba(99, 102, 241, 0.4)'
+                  };
+                  const label = PAYMENT_METHOD_LABELS[method.paymentMethod] || method.paymentMethod;
+                  const isActive = activePaymentIndex === index;
+                  const isInactive = activePaymentIndex !== null && activePaymentIndex !== index;
+                  
+                  return (
+                    <div 
+                      key={method.paymentMethod}
+                      onMouseEnter={() => setActivePaymentIndex(index)}
+                      onMouseLeave={() => setActivePaymentIndex(null)}
+                      style={{ 
+                        display: 'flex', 
+                        flexDirection: 'column',
+                        gap: '8px',
+                        padding: '12px 14px',
+                        backgroundColor: isActive ? 'var(--accent-blue-light)' : 'var(--bg-subtle)',
+                        borderRadius: '12px',
+                        border: `1px solid ${isActive ? colorConfig.main + '30' : 'var(--border-subtle)'}`,
+                        boxShadow: isActive ? `0 0 0 3px ${colorConfig.main}15` : 'none',
+                        opacity: isInactive ? 0.6 : 1,
+                        transition: 'all 0.2s ease',
+                        cursor: 'pointer',
+                        transform: isActive ? 'translateX(4px)' : 'translateX(0)'
+                      }}
+                    >
+                      {/* Top row: Dot + Label + Percentage */}
+                      <div style={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'space-between',
+                        gap: '10px'
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          {/* Color dot with glow */}
+                          <div style={{ 
+                            width: '10px', 
+                            height: '10px', 
+                            borderRadius: '4px', 
+                            backgroundColor: colorConfig.main,
+                            boxShadow: isActive ? `0 0 10px ${colorConfig.glow}` : `0 0 6px ${colorConfig.glow}`,
+                            flexShrink: 0,
+                            transition: 'box-shadow 0.2s ease'
+                          }} />
+                          {/* Label */}
+                          <span style={{ 
+                            fontSize: '13px', 
+                            fontWeight: 600, 
+                            color: 'var(--text-secondary)'
+                          }}>
+                            {label}
+                          </span>
+                        </div>
+                        {/* Percentage */}
+                        <span style={{ 
+                          fontSize: '14px', 
+                          fontWeight: 700, 
+                          color: 'var(--text-primary)',
+                          fontVariantNumeric: 'tabular-nums'
+                        }}>
+                          {method.percentage.toFixed(1)}%
+                        </span>
+                      </div>
+                      
+                      {/* Mini progress bar */}
+                      <div style={{
+                        width: '100%',
+                        height: '4px',
+                        backgroundColor: 'var(--border-subtle)',
+                        borderRadius: '2px',
+                        overflow: 'hidden'
+                      }}>
+                        <div style={{
+                          width: `${method.percentage}%`,
+                          height: '100%',
+                          backgroundColor: colorConfig.main,
+                          borderRadius: '2px',
+                          transition: 'width 0.8s ease-out'
+                        }} />
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           ) : (
             <div style={{ 
-              height: '200px', 
+              height: '220px', 
               display: 'flex', 
+              flexDirection: 'column',
               alignItems: 'center', 
               justifyContent: 'center',
               backgroundColor: 'var(--bg-subtle)',
-              borderRadius: '12px',
+              borderRadius: '16px',
               border: '1px dashed var(--border-default)'
             }}>
-              <p style={{ color: 'var(--text-tertiary)', fontSize: '14px' }}>No payment method data</p>
+              <div style={{
+                width: '48px',
+                height: '48px',
+                borderRadius: '12px',
+                backgroundColor: 'var(--bg-tertiary)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '12px'
+              }}>
+                <svg width="24" height="24" fill="none" stroke="var(--text-tertiary)" strokeWidth={1.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
+                </svg>
+              </div>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '14px', fontWeight: 600, margin: 0 }}>No payment method data</p>
+              <p style={{ color: 'var(--text-tertiary)', fontSize: '12px', marginTop: '4px' }}>Data will appear when available</p>
             </div>
           )}
         </div>

@@ -92,6 +92,8 @@ const STATUS_LABELS: { [key: string]: string } = {
 interface ChartsProps {
   periodDays?: number;
   showDatePicker?: boolean;
+  dateRange?: { startDate: string; endDate: string };
+  onDateRangeChange?: (dateRange: { startDate: string; endDate: string }) => void;
 }
 
 // Premium Tooltip Component for Revenue Chart
@@ -367,17 +369,31 @@ const PremiumPaymentTooltip = ({ active, payload }: any) => {
   );
 };
 
-const Charts = ({ periodDays, showDatePicker = true }: ChartsProps) => {
+const Charts = ({ periodDays, showDatePicker = true, dateRange: externalDateRange, onDateRangeChange }: ChartsProps) => {
   const [revenueData, setRevenueData] = useState<RevenueOverTime[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [transactionStatus, setTransactionStatus] = useState<TransactionStatus[]>([]);
   const [loading, setLoading] = useState(true);
-  const [dateRange, setDateRange] = useState({ startDate: '', endDate: '' });
+  const [internalDateRange, setInternalDateRange] = useState({ startDate: '', endDate: '' });
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [showAvgLine, setShowAvgLine] = useState(false);
   const [activePaymentIndex, setActivePaymentIndex] = useState<number | null>(null);
   const [activeStatusIndex, setActiveStatusIndex] = useState<number | null>(null);
   const [statusMetricType, setStatusMetricType] = useState<'count' | 'amount'>('count');
+
+  // Use external date range if provided, otherwise use internal
+  const dateRange = externalDateRange || internalDateRange;
+  
+  // Handler for date range changes
+  const handleDateRangeChange = (newRange: { startDate: string; endDate: string }) => {
+    if (onDateRangeChange) {
+      // Notify parent component
+      onDateRangeChange(newRange);
+    } else {
+      // Use internal state
+      setInternalDateRange(newRange);
+    }
+  };
 
   useEffect(() => {
     const handleResize = () => {
@@ -387,7 +403,10 @@ const Charts = ({ periodDays, showDatePicker = true }: ChartsProps) => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Only initialize date range if no external date range is provided
   useEffect(() => {
+    if (externalDateRange) return; // Skip if using external date range
+    
     const formatDate = (date: Date) => date.toISOString().split('T')[0];
     const endDate = new Date();
     let startDate: Date;
@@ -404,8 +423,8 @@ const Charts = ({ periodDays, showDatePicker = true }: ChartsProps) => {
       startDate: formatDate(startDate),
       endDate: formatDate(endDate),
     };
-    setDateRange(range);
-  }, [periodDays]);
+    setInternalDateRange(range);
+  }, [periodDays, externalDateRange]);
 
   useEffect(() => {
     if (!dateRange.startDate || !dateRange.endDate) return;
@@ -563,7 +582,7 @@ const Charts = ({ periodDays, showDatePicker = true }: ChartsProps) => {
               <input
                 type="date"
                 value={dateRange.startDate}
-                onChange={(e) => setDateRange({ ...dateRange, startDate: e.target.value })}
+                onChange={(e) => handleDateRangeChange({ ...dateRange, startDate: e.target.value })}
                 style={{
                   padding: '10px 14px',
                   backgroundColor: 'var(--bg-subtle)',
@@ -581,7 +600,7 @@ const Charts = ({ periodDays, showDatePicker = true }: ChartsProps) => {
               <input
                 type="date"
                 value={dateRange.endDate}
-                onChange={(e) => setDateRange({ ...dateRange, endDate: e.target.value })}
+                onChange={(e) => handleDateRangeChange({ ...dateRange, endDate: e.target.value })}
                 style={{
                   padding: '10px 14px',
                   backgroundColor: 'var(--bg-subtle)',

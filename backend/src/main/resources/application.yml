@@ -55,8 +55,15 @@ logging:
   level:
     root: INFO
     com.analytics.dashboard: DEBUG
+    org.springframework.cache: DEBUG
   file:
     name: logs/analytics-dashboard.log
+
+# Spring Cache Configuration
+spring.cache:
+  type: caffeine
+  caffeine:
+    spec: maximumSize=500,expireAfterWrite=30s
 
 # Data Seeder Configuration
 # Set app.data-seeder.enabled=true to generate large-scale test data
@@ -67,3 +74,52 @@ app:
     user-count: 5000
     transaction-count: 500000
     batch-size: 1000
+
+  # Notification System Configuration
+  # Analytics notifications are generated when metrics cross thresholds
+  notifications:
+    enabled: true  # Enable/disable the notification scheduler
+    cron: "0 0 * * * *"  # Run every hour at minute 0 (cron format: sec min hour day month weekday)
+    duplicate-prevention-hours: 6  # Don't create duplicate notifications within this window
+    max-notifications-returned: 50  # Max notifications in API response
+    retention-days: 30  # Days to keep read notifications before cleanup
+    
+    # Threshold configuration for each notification type
+    thresholds:
+      # Revenue drop percentage triggers
+      revenue-drop-warning: 20.0    # WARNING when revenue drops > 20%
+      revenue-drop-critical: 40.0   # CRITICAL when revenue drops > 40%
+      
+      # Failed transaction increase percentage triggers
+      failed-transaction-warning: 30.0    # WARNING when failed txn increase > 30%
+      failed-transaction-critical: 50.0   # CRITICAL when failed txn increase > 50%
+      
+      # Success rate minimum thresholds
+      success-rate-warning: 80.0    # WARNING when success rate < 80%
+      success-rate-critical: 70.0   # CRITICAL when success rate < 70%
+      
+      # Pending transaction count thresholds
+      pending-transactions-warning: 100   # WARNING when pending > 100
+      pending-transactions-critical: 500  # CRITICAL when pending > 500
+
+  # AI Insights Configuration
+  # Generates human-readable insights from aggregated analytics data
+  ai-insights:
+    enabled: true  # Enable/disable AI insights feature
+    client: mock   # Options: "mock" (rule-based), "openai" (requires API key)
+    
+    # Mock AI Client Configuration (rule-based, no external API)
+    mock:
+      significant-change-threshold: 10.0  # % change considered significant
+      moderate-change-threshold: 5.0       # % change considered moderate
+      success-rate-warning: 85.0           # Success rate below this triggers warning
+      success-rate-critical: 75.0          # Success rate below this triggers critical alert
+    
+    # OpenAI Client Configuration (for production)
+    # Uncomment and configure when using real AI
+    # openai:
+    #   api-key: ${OPENAI_API_KEY:}
+    #   model: gpt-4-turbo-preview
+    #   max-tokens: 500
+    #   temperature: 0.3  # Low temperature for deterministic outputs
+    #   timeout-seconds: 30
